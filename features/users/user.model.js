@@ -13,6 +13,7 @@ const userSchema = new Schema(
       sparse: true,
       lowercase: true,
       unique: true,
+      default: null,
     },
     isEmailVerified: {
       type: Boolean,
@@ -33,21 +34,27 @@ const userSchema = new Schema(
     },
     refreshToken: {
       type: String,
+      default: null,
     },
     phoneVerificationOTP: {
       type: String,
+      default: null,
     },
     phoneVerificationOTPExpires: {
       type: Date,
+      default: null,
     },
     resetPasswordOTP: {
       type: String,
+      default: null,
     },
     resetPasswordOTPExpires: {
       type: Date,
+      default: null,
     },
     resetPasswordTokenExpires: {
       type: Date,
+      default: null,
     },
     isAdmin: {
       type: Boolean,

@@ -60,7 +60,7 @@ const verifyPhoneOtp = async (req, res) => {
   res.status(200).json({
     status: "success",
     message: "Phone OTP verified successfully",
-    data: { user: sanitizeUser(userUpdated) },
+    data: { user: userUpdated },
   });
 };
 
@@ -107,7 +107,7 @@ const refreshToken = async (req, res) => {
   res.status(200).json({
     status: "success",
     message: "Token refreshed successfully",
-    data: { refreshAndAccessToken },
+    data: { ...refreshAndAccessToken },
   });
 };
 

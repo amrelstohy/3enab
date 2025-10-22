@@ -14,18 +14,22 @@ const {
   generateRefreshToken,
   generateAccessToken,
   generateEmailVerificationToken,
+  generateResetPasswordToken,
 } = require("../../utils/tokensGenerator");
 const OTPGenerator = require("../../utils/OTPGenerator");
 const { sanitizeUser } = require("../users/user.sanitizers");
+const {
+  verifyPhoneOTP,
+  verifyResetPasswordOTP,
+} = require("../../utils/verifyOTP");
 
 // Register service
 const register = async ({ email, password, name, phone }) => {
   const phoneExists = await User.findOne({ phone });
-  console.log(phoneExists);
+
   if (phoneExists) {
     throw new ConflictError("Phone number already exists");
   }
-  console.log(!phoneExists);
 
   if (email) {
     const emailExists = await User.findOne({ email });
@@ -34,7 +38,8 @@ const register = async ({ email, password, name, phone }) => {
     }
   }
 
-  const phoneVerificationOTP = OTPGenerator(4);
+  const phoneVerificationOTP = "1234"; //OTPGenerator(4);
+  //sendSMS({});
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -89,10 +94,6 @@ const login = async ({ phone, password }) => {
 
 // Logout service
 const logout = async (user) => {
-  if (!user) {
-    throw new NotFoundError("User not found");
-  }
-
   user.refreshToken = null;
   await user.save();
 };
@@ -138,7 +139,7 @@ const sendPhoneOtp = async (user) => {
     throw new NotFoundError("User not found");
   }
 
-  const phoneVerificationOTP = OTPGenerator(4);
+  const phoneVerificationOTP = "1234"; //OTPGenerator(4);
   const phoneVerificationOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
   await User.findOneAndUpdate(
@@ -149,32 +150,26 @@ const sendPhoneOtp = async (user) => {
     }
   );
 
-  await sendSMS({
-    to: phoneNumber,
-    message: `Your verification code is: ${otp}. Valid for 10 minutes.`,
-  });
+  // await sendSMS({
+  //   to: phoneNumber,
+  //   message: `Your verification code is: ${otp}. Valid for 10 minutes.`,
+  // });
 };
 
 // Verify phone OTP
 const verifyPhoneOtp = async (user, otp) => {
-  if (!user || !otp) {
-    throw new NotFoundError("User or OTP not found");
+  if (user.isPhoneVerified) {
+    throw new ConflictError("Phone number already verified");
   }
 
-  if (user.phoneVerificationOTP !== otp) {
-    throw new UnauthorizedError("Invalid OTP");
-  }
-
-  if (user.phoneVerificationOTPExpires < new Date()) {
-    throw new UnauthorizedError("OTP expired");
-  }
+  verifyPhoneOTP(otp, user);
 
   user.isPhoneVerified = true;
   user.phoneVerificationOTP = null;
   user.phoneVerificationOTPExpires = null;
   await user.save();
 
-  return user;
+  return sanitizeUser(user);
 };
 
 // Send reset password OTP
@@ -185,7 +180,7 @@ const sendResetPasswordOtp = async (phone) => {
     throw new NotFoundError("User not found");
   }
 
-  const otp = OTPGenerator(4);
+  const otp = "1234"; //OTPGenerator(4);
   const resetPasswordOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
   user.resetPasswordOTP = otp;
@@ -209,13 +204,7 @@ const verifyResetPasswordOtp = async (phone, otp) => {
     throw new NotFoundError("User not found");
   }
 
-  if (user.resetPasswordOTP !== otp) {
-    throw new UnauthorizedError("Invalid OTP");
-  }
-
-  if (user.resetPasswordOTPExpires < new Date()) {
-    throw new UnauthorizedError("OTP expired");
-  }
+  verifyResetPasswordOTP(otp, user);
 
   const resetPasswordToken = generateResetPasswordToken(user._id);
 
@@ -229,12 +218,23 @@ const verifyResetPasswordOtp = async (phone, otp) => {
 
 // Reset password
 const resetPassword = async (user, newPassword) => {
+  const isMatch = await bcrypt.compare(newPassword, user.password);
+
+  if (isMatch) {
+    throw new ConflictError(
+      "New password cannot be the same as the old password"
+    );
+  }
+
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   user.resetPasswordTokenExpires = null;
   user.password = hashedPassword;
   await user.save();
+
+  return sanitizeUser(user);
 };
 
+// Refresh token
 const refreshToken = async (token) => {
   let userId;
   try {
