@@ -11,7 +11,7 @@ const sanitizeUser = (user) => {
   if (!user) return null;
 
   sanitizedUser = {
-    id: user.id,
+    _id: user._id.toString(),
     name: user.name,
     email: user.email,
     isEmailVerified: user.isEmailVerified,

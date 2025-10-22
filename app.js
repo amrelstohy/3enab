@@ -7,6 +7,7 @@ const helmet = require("helmet");
 const connectDB = require("./config/db");
 const routes = require("./features/index");
 const { errorHandler } = require("./middlewares/errorHandler.middleware");
+const swaggerDocs = require("./swagger");
 
 const app = express();
 
@@ -15,7 +16,9 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static("uploads"));
 app.use("/api/v1", routes);
+swaggerDocs(app);
 app.use(errorHandler);
 const PORT = process.env.PORT;
 

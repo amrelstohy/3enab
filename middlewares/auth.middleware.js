@@ -25,6 +25,10 @@ const authMiddleware = async (req, res, next) => {
     throw new UnauthorizedError("User not found");
   }
 
+  if (!user.refreshToken) {
+    throw new UnauthorizedError("This user is not logged in");
+  }
+
   req.user = user;
 
   next();
