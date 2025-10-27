@@ -19,6 +19,11 @@
  *           type: string
  *           description: Optional link for the advertisement
  *           example: "https://example.com/sale"
+ *         imagePath:
+ *           type: string
+ *           nullable: true
+ *           description: Path to the ad image
+ *           example: "/uploads/ads/507f1f77bcf86cd799439011.jpg"
  *         isActive:
  *           type: boolean
  *           description: Whether the ad is currently active
@@ -76,17 +81,17 @@
  *         data:
  *           type: object
  * tags:
- *   name: Ads
- *   description: API endpoints for managing advertisements
+ *   name: Ads - Admin
+ *   description: Admin API endpoints for managing advertisements
  */
 
 /**
  * @swagger
- * /api/v1/ads:
+ * /api/v1/admin/ads:
  *   post:
  *     summary: Create a new advertisement
  *     description: Allows admin users to create a new advertisement
- *     tags: [Ads]
+ *     tags: ["Ads - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -142,135 +147,11 @@
 
 /**
  * @swagger
- * /api/v1/ads:
- *   get:
- *     summary: Get all advertisements
- *     description: Retrieve a list of all advertisements with pagination and filtering support
- *     tags: [Ads]
- *     parameters:
- *       - name: page
- *         in: query
- *         description: Page number for pagination
- *         required: false
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *       - name: limit
- *         in: query
- *         description: Number of ads per page
- *         required: false
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 10
- *       - name: orderBy
- *         in: query
- *         description: Field to order by
- *         required: false
- *         schema:
- *           type: string
- *           enum: [createdAt, name, isActive]
- *           default: createdAt
- *       - name: order
- *         in: query
- *         description: Order direction
- *         required: false
- *         schema:
- *           type: string
- *           enum: [asc, desc]
- *           default: desc
- *       - name: isActive
- *         in: query
- *         description: Filter by active status
- *         required: false
- *         schema:
- *           type: boolean
- *     responses:
- *       200:
- *         description: Advertisements retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         ads:
- *                           type: array
- *                           items:
- *                             $ref: '#/components/schemas/Ad'
- *                         total:
- *                           type: integer
- *                         page:
- *                           type: integer
- *                         limit:
- *                           type: integer
- *                         totalPages:
- *                           type: integer
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/ads/{adId}:
- *   get:
- *     summary: Get a specific advertisement by ID
- *     description: Retrieve details of a specific advertisement
- *     tags: [Ads]
- *     parameters:
- *       - name: adId
- *         in: path
- *         required: true
- *         description: Unique identifier of the advertisement
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439011"
- *     responses:
- *       200:
- *         description: Advertisement retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         ad:
- *                           $ref: '#/components/schemas/Ad'
- *       404:
- *         description: Advertisement not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/ads/{adId}:
+ * /api/v1/admin/ads/{adId}:
  *   put:
  *     summary: Update an advertisement
  *     description: Update an existing advertisement (admin only)
- *     tags: [Ads]
+ *     tags: ["Ads - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -335,11 +216,11 @@
 
 /**
  * @swagger
- * /api/v1/ads/{adId}:
+ * /api/v1/admin/ads/{adId}:
  *   delete:
  *     summary: Delete an advertisement
  *     description: Delete an existing advertisement (admin only)
- *     tags: [Ads]
+ *     tags: ["Ads - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -391,11 +272,11 @@
 
 /**
  * @swagger
- * /api/v1/ads/{adId}/image:
+ * /api/v1/admin/ads/{adId}/image:
  *   post:
  *     summary: Upload advertisement image
  *     description: Upload an image for an existing advertisement (admin only)
- *     tags: [Ads]
+ *     tags: ["Ads - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -465,56 +346,11 @@
 
 /**
  * @swagger
- * /api/v1/ads/{adId}/image:
- *   get:
- *     summary: Get advertisement image
- *     description: Retrieve the image file for a specific advertisement
- *     tags: [Ads]
- *     parameters:
- *       - name: adId
- *         in: path
- *         required: true
- *         description: Unique identifier of the advertisement
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439011"
- *     responses:
- *       200:
- *         description: Image file retrieved successfully
- *         content:
- *           image/jpeg:
- *             schema:
- *               type: string
- *               format: binary
- *           image/png:
- *             schema:
- *               type: string
- *               format: binary
- *           image/webp:
- *             schema:
- *               type: string
- *               format: binary
- *       404:
- *         description: Advertisement not found or image not available
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/ads/{adId}/activate:
+ * /api/v1/admin/ads/{adId}/activate:
  *   patch:
  *     summary: Activate an advertisement
  *     description: Activate an existing advertisement (admin only)
- *     tags: [Ads]
+ *     tags: ["Ads - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -567,11 +403,11 @@
 
 /**
  * @swagger
- * /api/v1/ads/{adId}/deactivate:
+ * /api/v1/admin/ads/{adId}/deactivate:
  *   patch:
  *     summary: Deactivate an advertisement
  *     description: Deactivate an existing advertisement (admin only)
- *     tags: [Ads]
+ *     tags: ["Ads - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -610,6 +446,107 @@
  *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Advertisement not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /api/v1/admin/ads/admin/all:
+ *   get:
+ *     summary: Get all ads for admin
+ *     description: Admin-only endpoint to retrieve all ads with search and pagination
+ *     tags: ["Ads - Admin"]
+ *     parameters:
+ *       - name: Authorization
+ *         in: header
+ *         required: true
+ *         description: JWT access token
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: search
+ *         in: query
+ *         required: false
+ *         description: Search ads by name
+ *         schema:
+ *           type: string
+ *           example: "summer"
+ *       - name: orderBy
+ *         in: query
+ *         required: false
+ *         description: Field to order by
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, name, isActive]
+ *           example: "createdAt"
+ *       - name: order
+ *         in: query
+ *         required: false
+ *         description: Order direction
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           example: "desc"
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         description: Page number
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         description: Number of items per page
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *     responses:
+ *       200:
+ *         description: Ads retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         ads:
+ *                           type: array
+ *                           items:
+ *                             $ref: '#/components/schemas/Ad'
+ *                         total:
+ *                           type: integer
+ *                           description: Total number of ads
+ *                         page:
+ *                           type: integer
+ *                           description: Current page number
+ *                         limit:
+ *                           type: integer
+ *                           description: Number of items per page
+ *                         totalPages:
+ *                           type: integer
+ *                           description: Total number of pages
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - Admin access required
  *         content:
  *           application/json:
  *             schema:

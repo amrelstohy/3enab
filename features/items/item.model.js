@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+let isActive = process.env.NODE_ENV === "production" ? false : true;
+let isAvailable = process.env.NODE_ENV === "production" ? false : true;
+
 const discountSchema = new Schema(
   {
     type: {
@@ -50,14 +53,17 @@ const itemSchema = new Schema(
       type: String,
       default: null,
     },
-    status: {
-      type: String,
-      enum: ["active", "inactive", "available", "unavailable"],
-      default: "available",
+    isActive: {
+      type: Boolean,
+      default: isActive,
+    },
+    isAvailable: {
+      type: Boolean,
+      default: isAvailable,
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
+      ref: "MenuCategory",
       required: true,
     },
     prepTime: {
@@ -74,7 +80,7 @@ const itemSchema = new Schema(
   }
 );
 
-itemSchema.index({ category: 1, status: 1, order: 1 });
+itemSchema.index({ category: 1, isActive: 1, order: 1 });
 
 itemSchema.methods.getFinalPrice = function () {
   const now = new Date();

@@ -11,7 +11,7 @@ const sanitizeVendor = (vendor) => {
     _id: vendor._id.toString(),
     name: vendor.name,
     description: vendor.description,
-    category: vendor.category,
+    category: vendor.category || null,
     workingHours: vendor.workingHours,
     isActive: vendor.isActive,
     owner: vendor.owner,

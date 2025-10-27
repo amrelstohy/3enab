@@ -72,23 +72,26 @@ const getVendorById = async (req, res) => {
   });
 };
 
-// update active
+// update active status
 const updateActive = async (req, res) => {
-  const vendor = await vendorService.updateActive(req.vendor);
+  const vendor = await vendorService.updateActive(
+    req.vendor,
+    req.body.isActive
+  );
   res.status(200).json({
     status: "success",
-    message: "Vendor updated successfully",
+    message: "Vendor active status updated successfully",
     data: { vendor },
   });
 };
 
-// update inactive
-const updateInactive = async (req, res) => {
-  const vendor = await vendorService.updateInactive(req.vendor);
+// Get all vendors for admin
+const getAllVendorsForAdmin = async (req, res) => {
+  const data = await vendorService.getAllVendorsForAdmin(req.query);
   res.status(200).json({
     status: "success",
-    message: "Vendor updated successfully",
-    data: { vendor },
+    message: "Vendors fetched successfully",
+    data,
   });
 };
 
@@ -101,5 +104,5 @@ module.exports = {
   getVendors,
   getVendorById,
   updateActive,
-  updateInactive,
+  getAllVendorsForAdmin,
 };

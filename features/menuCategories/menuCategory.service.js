@@ -1,58 +1,60 @@
-const Category = require("./menuCategory.model");
+const MenuCategory = require("./menuCategory.model");
 const { ConflictError, NotFoundError } = require("../../utils/errors");
 const {
-  sanitizeCategory,
-  sanitizeCategories,
+  sanitizeMenuCategory,
+  sanitizeMenuCategories,
 } = require("./menuCategory.sanitizers");
 
-// Create category
-const createCategory = async (vendor, data) => {
+// Create menu category
+const createMenuCategory = async (vendor, data) => {
   const { name, description } = data;
 
-  const numCategories = await Category.countDocuments({ vendor: vendor._id });
-  console.log(numCategories);
+  const numMenuCategories = await MenuCategory.countDocuments({
+    vendor: vendor._id,
+  });
+  console.log(numMenuCategories);
 
-  const category = new Category({
+  const menuCategory = new MenuCategory({
     name,
     description,
     vendor: vendor._id,
-    order: numCategories + 1,
+    order: numMenuCategories + 1,
   });
 
-  await category.save();
-  return sanitizeCategory(category);
+  await menuCategory.save();
+  return sanitizeMenuCategory(menuCategory);
 };
 
-// Update category
-const updateCategory = async (category, data) => {
+// Update menu category
+const updateMenuCategory = async (menuCategory, data) => {
   const { name, description } = data;
-  category.name = name || category.name;
-  category.description = description || category.description;
-  await category.save();
-  return sanitizeCategory(category);
+  menuCategory.name = name || menuCategory.name;
+  menuCategory.description = description || menuCategory.description;
+  await menuCategory.save();
+  return sanitizeMenuCategory(menuCategory);
 };
 
-// Delete category
-const deleteCategory = async (category) => {
-  await category.deleteOne();
-  const existingCategories = await Category.find({
-    vendor: category.vendor,
+// Delete menu category
+const deleteMenuCategory = async (menuCategory) => {
+  await menuCategory.deleteOne();
+  const existingMenuCategories = await MenuCategory.find({
+    vendor: menuCategory.vendor,
   })
     .sort({ order: 1 })
     .select("_id");
-  await Category.bulkWrite(
-    existingCategories.map((category, index) => ({
+  await MenuCategory.bulkWrite(
+    existingMenuCategories.map((mc, index) => ({
       updateOne: {
-        filter: { _id: category._id },
+        filter: { _id: mc._id },
         update: { order: index + 1 },
       },
     }))
   );
 };
 
-// Get categories
-const getCategories = async (vendor) => {
-  const categories = await Category.find({
+// Get menu categories
+const getMenuCategories = async (vendor) => {
+  const menuCategories = await MenuCategory.find({
     vendor: vendor._id,
     isActive: true,
   })
@@ -61,52 +63,46 @@ const getCategories = async (vendor) => {
     })
     .lean();
 
-  return sanitizeCategories(categories);
+  return sanitizeMenuCategories(menuCategories);
 };
 
-// Get single category
-const getCategoryById = async (category) => {
-  if (!category.isActive) {
-    throw new NotFoundError("Category not found");
+// Get single menu category
+const getMenuCategoryById = async (menuCategory) => {
+  if (!menuCategory.isActive) {
+    throw new NotFoundError("Menu category not found");
   }
-  return sanitizeCategory(category);
+  return sanitizeMenuCategory(menuCategory);
 };
 
-// Activate category
-const activateCategory = async (category) => {
-  if (category.isActive) {
-    throw new ConflictError("Category is already active");
+// Update menu category active status
+const updateActive = async (menuCategory, isActive) => {
+  if (menuCategory.isActive === isActive) {
+    throw new ConflictError(
+      "Menu category active status is already set to this value"
+    );
   }
-  category.isActive = true;
-  await category.save();
-  return sanitizeCategory(category);
+  menuCategory.isActive = isActive;
+  await menuCategory.save();
+  return sanitizeMenuCategory(menuCategory);
 };
 
-// Deactivate category
-const deactivateCategory = async (category) => {
-  if (!category.isActive) {
-    throw new ConflictError("Category is already inactive");
-  }
-  category.isActive = false;
-  await category.save();
-  return sanitizeCategory(category);
-};
-
-// Update order for categories
-const updateOrder = async (vendor, orderedArray) => {
-  const allCategories = await Category.find({
+// Update order for menu categories
+const updateMenuCategoryOrder = async (vendor, orderedArray) => {
+  const allMenuCategories = await MenuCategory.find({
     vendor: vendor._id,
   }).select("_id");
 
-  const allIds = allCategories.map((c) => c._id.toString());
+  const allIds = allMenuCategories.map((mc) => mc._id.toString());
 
   const missingIds = allIds.filter((id) => !orderedArray.includes(id));
 
   if (missingIds.length > 0) {
-    throw new NotFoundError(`Missing categories: ${missingIds.join(", ")}`);
+    throw new NotFoundError(
+      `Missing menu categories: ${missingIds.join(", ")}`
+    );
   }
 
-  await Category.bulkWrite(
+  await MenuCategory.bulkWrite(
     orderedArray.map((id, index) => ({
       updateOne: {
         filter: { _id: id, vendor: vendor._id },
@@ -115,17 +111,25 @@ const updateOrder = async (vendor, orderedArray) => {
     }))
   );
 
-  const updated = await Category.find({ vendor: vendor._id }).sort("order");
-  return sanitizeCategories(updated);
+  const updated = await MenuCategory.find({ vendor: vendor._id }).sort("order");
+  return sanitizeMenuCategories(updated);
+};
+
+// Get all menu categories for admin
+const getAllMenuCategoriesForAdmin = async (vendor) => {
+  const menuCategories = await MenuCategory.find({ vendor: vendor._id }).sort(
+    "order"
+  );
+  return sanitizeMenuCategories(menuCategories);
 };
 
 module.exports = {
-  createCategory,
-  updateCategory,
-  deleteCategory,
-  getCategories,
-  getCategoryById,
-  activateCategory,
-  deactivateCategory,
-  updateOrder,
+  createMenuCategory,
+  updateMenuCategory,
+  deleteMenuCategory,
+  getMenuCategories,
+  getMenuCategoryById,
+  updateActive,
+  updateMenuCategoryOrder,
+  getAllMenuCategoriesForAdmin,
 };

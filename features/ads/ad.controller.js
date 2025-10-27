@@ -85,6 +85,16 @@ const deactivateAd = async (req, res) => {
   });
 };
 
+// Get all ads for admin
+const getAllAdsForAdmin = async (req, res) => {
+  const data = await adService.getAllAdsForAdmin(req.query);
+  res.status(200).json({
+    status: "success",
+    message: "Ads fetched successfully",
+    data,
+  });
+};
+
 module.exports = {
   createAd,
   uploadAdImage,
@@ -95,4 +105,5 @@ module.exports = {
   getAd,
   activateAd,
   deactivateAd,
+  getAllAdsForAdmin,
 };

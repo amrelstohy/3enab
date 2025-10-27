@@ -5,7 +5,9 @@ const cors = require("cors");
 const morgan = require("morgan");
 const helmet = require("helmet");
 const connectDB = require("./config/db");
-const routes = require("./features/index");
+const userRoutes = require("./features/user.index");
+const vendorRoutes = require("./features/vendor.index");
+const adminRoutes = require("./features/admin.index");
 const { errorHandler } = require("./middlewares/errorHandler.middleware");
 const swaggerDocs = require("./swagger");
 
@@ -17,7 +19,12 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
-app.use("/api/v1", routes);
+
+// Route separation by application type
+app.use("/api/v1/admin", adminRoutes); // Admin App
+app.use("/api/v1/vendor", vendorRoutes); // Vendor App
+app.use("/api/v1", userRoutes); // User App (Main)
+
 swaggerDocs(app);
 app.use(errorHandler);
 const PORT = process.env.PORT;

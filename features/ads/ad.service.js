@@ -58,15 +58,11 @@ const getAds = async (query) => {
   const order = query.order || "desc";
   const page = query.page || 1;
   const limit = query.limit || 10;
-  const isActive = query.isActive;
 
   const sortOrder = order === "desc" ? -1 : 1;
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
-  const filter = {};
-  if (isActive !== undefined) {
-    filter.isActive = isActive === "true";
-  }
+  const filter = { isActive: true };
 
   const [ads, total] = await Promise.all([
     Ad.find(filter)
@@ -107,6 +103,42 @@ const deactivateAd = async (ad) => {
   return sanitizeAd(ad);
 };
 
+// Get all ads for admin
+const getAllAdsForAdmin = async (query) => {
+  const search = query.search || "";
+  const orderBy = query.orderBy || "createdAt";
+  const order = query.order || "desc";
+  const page = query.page || 1;
+  const limit = query.limit || 10;
+
+  const sortOrder = order === "desc" ? -1 : 1;
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+
+  const filter = {};
+  if (search.trim()) {
+    filter.name = { $regex: search, $options: "i" };
+  }
+
+  const [ads, total] = await Promise.all([
+    Ad.find(filter)
+      .sort({
+        [orderBy]: sortOrder,
+      })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean(),
+    Ad.countDocuments(filter),
+  ]);
+
+  return {
+    ads: sanitizeAds(ads),
+    total,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    totalPages: Math.ceil(total / parseInt(limit)),
+  };
+};
+
 module.exports = {
   createAd,
   uploadAdImage,
@@ -117,4 +149,5 @@ module.exports = {
   getAdById,
   activateAd,
   deactivateAd,
+  getAllAdsForAdmin,
 };

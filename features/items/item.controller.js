@@ -78,12 +78,22 @@ const updateOrder = async (req, res) => {
   });
 };
 
-// Update item status
-const updateStatus = async (req, res) => {
-  const item = await itemService.updateStatus(req.item, req.body);
+// Update item availability
+const updateAvailability = async (req, res) => {
+  const item = await itemService.updateAvailability(req.item, req.body.isAvailable);
   res.status(200).json({
     status: "success",
-    message: "Item status updated successfully",
+    message: "Item availability updated successfully",
+    data: { item },
+  });
+};
+
+// Update item active status
+const updateActive = async (req, res) => {
+  const item = await itemService.updateActive(req.item, req.body.isActive);
+  res.status(200).json({
+    status: "success",
+    message: "Item active status updated successfully",
     data: { item },
   });
 };
@@ -109,6 +119,15 @@ const removeDiscount = async (req, res) => {
   });
 };
 
+// Get all items for admin
+const getAllItemsForAdmin = async (req, res) => {
+  const items = await itemService.getAllItemsForAdmin(req.params);
+  res.status(200).json({
+    status: "success",
+    message: "Items fetched successfully",
+    data: { items },
+  });
+};
 module.exports = {
   createItem,
   uploadItemImage,
@@ -118,7 +137,9 @@ module.exports = {
   getItems,
   getItem,
   updateOrder,
-  updateStatus,
+  updateAvailability,
+  updateActive,
   updateDiscount,
   removeDiscount,
+  getAllItemsForAdmin,
 };

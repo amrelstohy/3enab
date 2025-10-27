@@ -86,38 +86,18 @@
  *           items:
  *             type: string
  *           example: ["64f1a2b3c4d5e6f7890a1111","64f1a2b3c4d5e6f7890a2222"]
- *     ErrorResponse:
- *       type: object
- *       properties:
- *         status:
- *           type: string
- *           example: "fail"
- *         message:
- *           type: string
- *           example: "Error message"
- *     SuccessResponse:
- *       type: object
- *       properties:
- *         status:
- *           type: string
- *           example: "success"
- *         message:
- *           type: string
- *           example: "Operation completed successfully"
- *         data:
- *           type: object
  * tags:
- *   name: VendorCategories
- *   description: API endpoints for managing vendor categories (Admin only)
+ *   name: Vendor Categories - Admin
+ *   description: Admin API endpoints for managing vendor categories
  */
 
 /**
  * @swagger
- * /api/v1/vendorCategories:
+ * /api/v1/admin/vendorCategories:
  *   post:
  *     summary: Create a new vendor category
  *     description: Admin-only endpoint to create a new vendor category
- *     tags: [VendorCategories]
+ *     tags: ["Vendor Categories - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -149,74 +129,61 @@
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Vendor category created successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         vendorCategory:
- *                           $ref: '#/components/schemas/VendorCategory'
+ *                     vendorCategory:
+ *                       $ref: '#/components/schemas/VendorCategory'
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Forbidden - Admin access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendorCategories:
  *   get:
- *     summary: Get all active vendor categories
- *     description: Public endpoint to retrieve all active vendor categories ordered by position
- *     tags: [VendorCategories]
+ *     summary: Get all vendor categories
+ *     description: Admin endpoint to retrieve all vendor categories (including inactive)
+ *     tags: ["Vendor Categories - Admin"]
  *     responses:
  *       200:
  *         description: Vendor categories retrieved successfully
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Vendor categories fetched successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         vendorCategories:
- *                           type: array
- *                           items:
- *                             $ref: '#/components/schemas/VendorCategory'
+ *                     vendorCategories:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/VendorCategory'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 /**
  * @swagger
- * /api/v1/vendorCategories/{vendorCategoryId}:
+ * /api/v1/admin/vendorCategories/{vendorCategoryId}:
  *   get:
  *     summary: Get a vendor category by ID
- *     description: Public endpoint to fetch a single vendor category
- *     tags: [VendorCategories]
+ *     description: Admin endpoint to fetch a single vendor category
+ *     tags: ["Vendor Categories - Admin"]
  *     parameters:
  *       - name: vendorCategoryId
  *         in: path
@@ -231,36 +198,27 @@
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Vendor category fetched successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         vendorCategory:
- *                           $ref: '#/components/schemas/VendorCategory'
+ *                     vendorCategory:
+ *                       $ref: '#/components/schemas/VendorCategory'
  *       404:
  *         description: Vendor category not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendorCategories/{vendorCategoryId}:
  *   put:
  *     summary: Update a vendor category
  *     description: Admin-only endpoint to update vendor category details
- *     tags: [VendorCategories]
+ *     tags: ["Vendor Categories - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -294,48 +252,31 @@
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Vendor category updated successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         vendorCategory:
- *                           $ref: '#/components/schemas/VendorCategory'
+ *                     vendorCategory:
+ *                       $ref: '#/components/schemas/VendorCategory'
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Forbidden - Admin access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Vendor category not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendorCategories/{vendorCategoryId}:
  *   delete:
  *     summary: Delete a vendor category
  *     description: Admin-only endpoint to delete a vendor category
- *     tags: [VendorCategories]
+ *     tags: ["Vendor Categories - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -367,37 +308,21 @@
  *                   example: "Vendor category deleted successfully"
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Forbidden - Admin access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Vendor category not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 /**
  * @swagger
- * /api/v1/vendorCategories/{vendorCategoryId}/image:
+ * /api/v1/admin/vendorCategories/{vendorCategoryId}/image:
  *   post:
  *     summary: Upload vendor category image
  *     description: Admin-only endpoint to upload an image for a vendor category
- *     tags: [VendorCategories]
+ *     tags: ["Vendor Categories - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -430,54 +355,38 @@
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Vendor category image uploaded successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         vendorCategory:
- *                           $ref: '#/components/schemas/VendorCategory'
+ *                     vendorCategory:
+ *                       $ref: '#/components/schemas/VendorCategory'
  *       400:
  *         description: Bad request - Invalid file format
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Forbidden - Admin access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Vendor category not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 /**
  * @swagger
- * /api/v1/vendorCategories/{vendorCategoryId}/status:
+ * /api/v1/admin/vendorCategories/{vendorCategoryId}/active:
  *   patch:
- *     summary: Update vendor category status
- *     description: Admin-only endpoint to activate or deactivate a vendor category
- *     tags: [VendorCategories]
+ *     summary: Update vendor category active status
+ *     description: Admin-only endpoint to update the active status of a vendor category
+ *     tags: ["Vendor Categories - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -498,64 +407,52 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdateVendorCategoryStatusRequest'
- *           examples:
- *             activate:
- *               summary: Activate vendor category
- *               value:
- *                 isActive: true
- *             deactivate:
- *               summary: Deactivate vendor category
- *               value:
- *                 isActive: false
+ *             type: object
+ *             required:
+ *               - isActive
+ *             properties:
+ *               isActive:
+ *                 type: boolean
+ *                 description: Vendor category active status
+ *                 example: true
  *     responses:
  *       200:
- *         description: Vendor category status updated successfully
+ *         description: Vendor category active status updated successfully
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Vendor category active status updated successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         vendorCategory:
- *                           $ref: '#/components/schemas/VendorCategory'
+ *                     vendorCategory:
+ *                       $ref: '#/components/schemas/VendorCategory'
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Forbidden - Admin access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Vendor category not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: Conflict - Vendor category active status is already set to this value
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 /**
  * @swagger
- * /api/v1/vendorCategories/{vendorCategoryId}/update-order:
+ * /api/v1/admin/vendorCategories/{vendorCategoryId}/update-order:
  *   patch:
  *     summary: Update vendor categories order
  *     description: Admin-only endpoint to reorder vendor categories
- *     tags: [VendorCategories]
+ *     tags: ["Vendor Categories - Admin"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -588,39 +485,27 @@
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Vendor category order updated successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         vendorCategories:
- *                           type: array
- *                           items:
- *                             $ref: '#/components/schemas/VendorCategory'
+ *                     vendorCategories:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/VendorCategory'
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Forbidden - Admin access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Missing vendor categories
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */

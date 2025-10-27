@@ -1,21 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const vendorCategoryController = require("./vendorCategory.controller");
+const vendorCategoryController = require("../vendorCategory.controller");
+const authMiddleware = require("../../../middlewares/auth.middleware");
+const isResourceExists = require("../../../middlewares/isResourceExists");
+const { uploadImage } = require("../../../middlewares/uploadImage");
+const adminMiddleware = require("../../../middlewares/admin.middleware");
+const VendorCategory = require("../vendorCategory.model");
 
-// Import documentation
-require("./vendorCategory.docs");
-const authMiddleware = require("../../middlewares/auth.middleware");
-const isResourceExists = require("../../middlewares/isResourceExists");
-const { uploadImage } = require("../../middlewares/uploadImage");
-const adminMiddleware = require("../../middlewares/admin.middleware");
-const VendorCategory = require("./vendorCategory.model");
-
+// Admin routes - Full CRUD
 router.post(
   "",
   authMiddleware,
   adminMiddleware,
   vendorCategoryController.createVendorCategory
 );
+
 router.put(
   "/:vendorCategoryId",
   authMiddleware,
@@ -23,6 +22,7 @@ router.put(
   adminMiddleware,
   vendorCategoryController.updateVendorCategory
 );
+
 router.post(
   "/:vendorCategoryId/image",
   authMiddleware,
@@ -31,6 +31,7 @@ router.post(
   uploadImage("vendorCategories", "vendorCategoryId"),
   vendorCategoryController.uploadImage
 );
+
 router.delete(
   "/:vendorCategoryId",
   authMiddleware,
@@ -38,6 +39,7 @@ router.delete(
   adminMiddleware,
   vendorCategoryController.deleteVendorCategory
 );
+
 router.patch(
   "/:vendorCategoryId/update-order",
   authMiddleware,
@@ -45,14 +47,17 @@ router.patch(
   adminMiddleware,
   vendorCategoryController.updateOrder
 );
+
 router.patch(
-  "/:vendorCategoryId/status",
+  "/:vendorCategoryId/active",
   authMiddleware,
   isResourceExists(VendorCategory, "vendorCategoryId"),
   adminMiddleware,
-  vendorCategoryController.updateStatus
+  vendorCategoryController.updateActive
 );
+
 router.get("", vendorCategoryController.getVendorCategories);
+
 router.get(
   "/:vendorCategoryId",
   isResourceExists(VendorCategory, "vendorCategoryId"),

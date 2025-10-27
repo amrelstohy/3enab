@@ -56,17 +56,15 @@ const getVendorCategory = async (req, res) => {
   });
 };
 
-// Update status
-const updateStatus = async (req, res) => {
-  const vendorCategory = await vendorCategoryService.updateStatus(
+// Update active status
+const updateActive = async (req, res) => {
+  const vendorCategory = await vendorCategoryService.updateActive(
     req.vendorCategory,
     req.body.isActive
   );
   res.status(200).json({
     status: "success",
-    message: req.body.isActive
-      ? "Vendor category activated successfully"
-      : "Vendor category deactivated successfully",
+    message: "Vendor category active status updated successfully",
     data: { vendorCategory },
   });
 };
@@ -103,7 +101,7 @@ module.exports = {
   deleteVendorCategory,
   getVendorCategories,
   getVendorCategory,
-  updateStatus,
+  updateActive,
   updateOrder,
   uploadImage,
 };
