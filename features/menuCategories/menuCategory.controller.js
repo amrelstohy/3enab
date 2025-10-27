@@ -1,101 +1,110 @@
 const menuCategoryService = require("./menuCategory.service");
 
-// Create category
-const createCategory = async (req, res) => {
-  const category = await menuCategoryService.createCategory(
+// Create menu category
+const createMenuCategory = async (req, res) => {
+  const menuCategory = await menuCategoryService.createMenuCategory(
     req.vendor,
     req.body
   );
   res.status(201).json({
     status: "success",
-    message: "Category created successfully",
-    data: { category },
+    message: "Menu category created successfully",
+    data: { menuCategory },
   });
 };
 
-// Update category
-const updateCategory = async (req, res) => {
-  const category = await menuCategoryService.updateCategory(
-    req.category,
+// Update menu category
+const updateMenuCategory = async (req, res) => {
+  const menuCategory = await menuCategoryService.updateMenuCategory(
+    req.menuCategory,
     req.body
   );
   res.status(200).json({
     status: "success",
-    message: "Category updated successfully",
-    data: { category },
+    message: "Menu category updated successfully",
+    data: { menuCategory },
   });
 };
 
-// Delete category
-const deleteCategory = async (req, res) => {
-  await menuCategoryService.deleteCategory(req.category);
+// Delete menu category
+const deleteMenuCategory = async (req, res) => {
+  await menuCategoryService.deleteMenuCategory(req.menuCategory);
   res.status(200).json({
     status: "success",
-    message: "Category deleted successfully",
+    message: "Menu category deleted successfully",
   });
 };
 
-// Get categories
-const getCategories = async (req, res) => {
-  const categories = await menuCategoryService.getCategories(req.vendor);
+// Get menu categories
+const getMenuCategories = async (req, res) => {
+  const menuCategories = await menuCategoryService.getMenuCategories(
+    req.vendor
+  );
   res.status(200).json({
     status: "success",
-    message: "Categories fetched successfully",
-    data: { categories },
+    message: "Menu categories fetched successfully",
+    data: { menuCategories },
   });
 };
 
-// Get single category
-const getCategory = async (req, res) => {
-  const category = await menuCategoryService.getCategoryById(req.category);
+// Get single menu category
+const getMenuCategory = async (req, res) => {
+  const menuCategory = await menuCategoryService.getMenuCategoryById(
+    req.menuCategory
+  );
   res.status(200).json({
     status: "success",
-    message: "Category fetched successfully",
-    data: { category },
+    message: "Menu category fetched successfully",
+    data: { menuCategory },
   });
 };
 
-// Activate category
-const activateCategory = async (req, res) => {
-  const category = await menuCategoryService.activateCategory(req.category);
+// Update menu category active status
+const updateActive = async (req, res) => {
+  const menuCategory = await menuCategoryService.updateActive(
+    req.menuCategory,
+    req.body.isActive
+  );
   res.status(200).json({
     status: "success",
-    message: "Category activated successfully",
-    data: { category },
+    message: "Menu category active status updated successfully",
+    data: { menuCategory },
   });
 };
 
-// Deactivate category
-const deactivateCategory = async (req, res) => {
-  const category = await menuCategoryService.deactivateCategory(req.category);
-  res.status(200).json({
-    status: "success",
-    message: "Category deactivated successfully",
-    data: { category },
-  });
-};
-
-// Update category order
-const updateOrder = async (req, res) => {
+// Update menu category order
+const updateMenuCategoryOrder = async (req, res) => {
   const { orderedArray } = req.body;
-  const categories = await menuCategoryService.updateOrder(
+  const menuCategories = await menuCategoryService.updateMenuCategoryOrder(
     req.vendor,
     orderedArray
   );
   res.status(200).json({
     status: "success",
-    message: "Category order updated successfully",
-    data: { categories },
+    message: "Menu category order updated successfully",
+    data: { menuCategories },
+  });
+};
+
+// Get all menu categories for admin
+const getAllMenuCategoriesForAdmin = async (req, res) => {
+  const menuCategories = await menuCategoryService.getAllMenuCategoriesForAdmin(
+    req.vendor
+  );
+  res.status(200).json({
+    status: "success",
+    message: "Menu categories fetched successfully",
+    data: { menuCategories },
   });
 };
 
 module.exports = {
-  createCategory,
-  updateCategory,
-  deleteCategory,
-  getCategories,
-  getCategory,
-  activateCategory,
-  deactivateCategory,
-  updateOrder,
+  createMenuCategory,
+  updateMenuCategory,
+  deleteMenuCategory,
+  getMenuCategories,
+  getMenuCategory,
+  updateActive,
+  updateMenuCategoryOrder,
+  getAllMenuCategoriesForAdmin,
 };

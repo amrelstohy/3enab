@@ -1,18 +1,18 @@
-const sanitizeCategory = (category) => {
+const sanitizeMenuCategory = (menuCategory) => {
   return {
-    _id: category._id,
-    name: category.name,
-    description: category.description,
-    vendor: category.vendor,
-    isActive: category.isActive,
-    order: category.order,
-    createdAt: category.createdAt,
-    updatedAt: category.updatedAt,
+    _id: menuCategory._id,
+    name: menuCategory.name,
+    description: menuCategory.description,
+    vendor: menuCategory.vendor,
+    isActive: menuCategory.isActive,
+    order: menuCategory.order,
+    createdAt: menuCategory.createdAt,
+    updatedAt: menuCategory.updatedAt,
   };
 };
 
-const sanitizeCategories = (categories) => {
-  return categories.map((c) => sanitizeCategory(c));
+const sanitizeMenuCategories = (menuCategories) => {
+  return menuCategories.map((mc) => sanitizeMenuCategory(mc));
 };
 
-module.exports = { sanitizeCategory, sanitizeCategories };
+module.exports = { sanitizeMenuCategory, sanitizeMenuCategories };

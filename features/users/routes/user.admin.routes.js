@@ -1,12 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("./user.controller");
-const addressRoutes = require("../addresses/address.routes");
-const authMiddleware = require("../../middlewares/auth.middleware");
+const userController = require("../user.controller");
+const authMiddleware = require("../../../middlewares/auth.middleware");
 
-// Import documentation
-require("./user.docs");
-
+// Admin routes - Profile management
 router.get("/me", authMiddleware, userController.getMe);
 router.put("/me", authMiddleware, userController.updateMe);
 router.delete("/me", authMiddleware, userController.deleteMe);
@@ -15,7 +12,5 @@ router.post(
   authMiddleware,
   userController.changePassword
 );
-
-router.use("/addresses", addressRoutes);
 
 module.exports = router;

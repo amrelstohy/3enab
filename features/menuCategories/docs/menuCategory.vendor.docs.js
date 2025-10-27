@@ -2,7 +2,7 @@
  * @swagger
  * components:
  *   schemas:
- *     Category:
+ *     MenuCategory:
  *       type: object
  *       required:
  *         - name
@@ -10,23 +10,23 @@
  *       properties:
  *         _id:
  *           type: string
- *           description: Unique identifier for the category
+ *           description: Unique identifier for the menu category
  *           example: "64f1a2b3c4d5e6f7890a1234"
  *         name:
  *           type: string
- *           description: Category name
+ *           description: Menu category name
  *           example: "Burgers"
  *         description:
  *           type: string
- *           description: Category description
+ *           description: Menu category description
  *           example: "All burger items"
  *         vendor:
  *           type: string
- *           description: Vendor ID this category belongs to
+ *           description: Vendor ID this menu category belongs to
  *           example: "64f1a2b3c4d5e6f7890a5678"
  *         isActive:
  *           type: boolean
- *           description: Whether the category is active
+ *           description: Whether the menu category is active
  *           example: true
  *         order:
  *           type: integer
@@ -38,7 +38,7 @@
  *         updatedAt:
  *           type: string
  *           format: date-time
- *     CreateCategoryRequest:
+ *     CreateMenuCategoryRequest:
  *       type: object
  *       required:
  *         - name
@@ -50,7 +50,7 @@
  *         description:
  *           type: string
  *           example: "All burger items"
- *     UpdateCategoryRequest:
+ *     UpdateMenuCategoryRequest:
  *       type: object
  *       properties:
  *         name:
@@ -59,14 +59,14 @@
  *         description:
  *           type: string
  *           example: "Spicy burgers only"
- *     UpdateCategoryOrderRequest:
+ *     UpdateMenuCategoryOrderRequest:
  *       type: object
  *       required:
  *         - orderedArray
  *       properties:
  *         orderedArray:
  *           type: array
- *           description: Array of category IDs in the desired order
+ *           description: Array of menu category IDs in the desired order
  *           items:
  *             type: string
  *           example: ["64f1a2b3c4d5e6f7890a1111","64f1a2b3c4d5e6f7890a2222"]
@@ -91,17 +91,17 @@
  *         data:
  *           type: object
  * tags:
- *   name: Categories
- *   description: API endpoints for managing vendor categories
+ *   name: Menu Categories - Vendor
+ *   description: Vendor API endpoints for managing menu categories
  */
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories:
+ * /api/v1/vendor/vendors/{vendorId}/categories:
  *   post:
- *     summary: Create a new category for a vendor
- *     description: Allows vendor owner to create a category
- *     tags: [Categories]
+ *     summary: Create a new menu category for a vendor
+ *     description: Allows vendor owner to create a menu category
+ *     tags: ["Menu Categories - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -122,10 +122,10 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CreateCategoryRequest'
+ *             $ref: '#/components/schemas/CreateMenuCategoryRequest'
  *     responses:
  *       201:
- *         description: Category created successfully
+ *         description: Menu category created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -136,8 +136,8 @@
  *                     data:
  *                       type: object
  *                       properties:
- *                         category:
- *                           $ref: '#/components/schemas/Category'
+ *                         menuCategory:
+ *                           $ref: '#/components/schemas/MenuCategory'
  *       401:
  *         description: Unauthorized
  *         content:
@@ -160,97 +160,11 @@
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories:
- *   get:
- *     summary: Get all active categories for a vendor
- *     description: Public endpoint to list active categories ordered by position
- *     tags: [Categories]
- *     parameters:
- *       - name: vendorId
- *         in: path
- *         required: true
- *         description: Vendor ID
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Categories retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         categories:
- *                           type: array
- *                           items:
- *                             $ref: '#/components/schemas/Category'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}:
- *   get:
- *     summary: Get a category by ID
- *     description: Public endpoint to fetch a single active category
- *     tags: [Categories]
- *     parameters:
- *       - name: vendorId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *       - name: categoryId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Category retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         category:
- *                           $ref: '#/components/schemas/Category'
- *       404:
- *         description: Category not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}:
  *   put:
- *     summary: Update a category
- *     description: Owner-only endpoint to update category
- *     tags: [Categories]
+ *     summary: Update a menu category
+ *     description: Owner-only endpoint to update menu category
+ *     tags: ["Menu Categories - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -258,25 +172,30 @@
  *         description: JWT access token
  *         schema:
  *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       - name: vendorId
  *         in: path
  *         required: true
+ *         description: Vendor ID
  *         schema:
  *           type: string
- *       - name: categoryId
+ *           example: "64f1a2b3c4d5e6f7890a5678"
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
+ *         description: Menu category ID
  *         schema:
  *           type: string
+ *           example: "64f1a2b3c4d5e6f7890a1234"
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdateCategoryRequest'
+ *             $ref: '#/components/schemas/UpdateMenuCategoryRequest'
  *     responses:
  *       200:
- *         description: Category updated successfully
+ *         description: Menu category updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -287,8 +206,8 @@
  *                     data:
  *                       type: object
  *                       properties:
- *                         category:
- *                           $ref: '#/components/schemas/Category'
+ *                         menuCategory:
+ *                           $ref: '#/components/schemas/MenuCategory'
  *       401:
  *         description: Unauthorized
  *         content:
@@ -296,7 +215,7 @@
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
- *         description: Category not found
+ *         description: Menu category not found
  *         content:
  *           application/json:
  *             schema:
@@ -311,30 +230,36 @@
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}:
  *   delete:
- *     summary: Delete a category
- *     description: Owner-only endpoint to delete category
- *     tags: [Categories]
+ *     summary: Delete a menu category
+ *     description: Owner-only endpoint to delete menu category
+ *     tags: ["Menu Categories - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
  *         required: true
+ *         description: JWT access token
  *         schema:
  *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       - name: vendorId
  *         in: path
  *         required: true
+ *         description: Vendor ID
  *         schema:
  *           type: string
- *       - name: categoryId
+ *           example: "64f1a2b3c4d5e6f7890a5678"
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
+ *         description: Menu category ID
  *         schema:
  *           type: string
+ *           example: "64f1a2b3c4d5e6f7890a1234"
  *     responses:
  *       200:
- *         description: Category deleted successfully
+ *         description: Menu category deleted successfully
  *         content:
  *           application/json:
  *             schema:
@@ -345,7 +270,7 @@
  *                   example: "success"
  *                 message:
  *                   type: string
- *                   example: "Category deleted successfully"
+ *                   example: "Menu category deleted successfully"
  *       401:
  *         description: Unauthorized
  *         content:
@@ -353,7 +278,7 @@
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
- *         description: Category not found
+ *         description: Menu category not found
  *         content:
  *           application/json:
  *             schema:
@@ -368,164 +293,113 @@
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/activate:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/active:
  *   patch:
- *     summary: Activate a category
- *     description: Owner-only endpoint to activate a category
- *     tags: [Categories]
+ *     summary: Update menu category active status
+ *     description: Owner-only endpoint to update the active status of a menu category
+ *     tags: ["Menu Categories - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
  *         required: true
+ *         description: JWT access token
  *         schema:
  *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       - name: vendorId
  *         in: path
  *         required: true
+ *         description: Vendor ID
  *         schema:
  *           type: string
- *       - name: categoryId
+ *           example: "64f1a2b3c4d5e6f7890a5678"
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
+ *         description: Menu category ID
  *         schema:
  *           type: string
- *     responses:
- *       200:
- *         description: Category activated successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         category:
- *                           $ref: '#/components/schemas/Category'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Category not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       409:
- *         description: Conflict - Category already active
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/deactivate:
- *   patch:
- *     summary: Deactivate a category
- *     description: Owner-only endpoint to deactivate a category
- *     tags: [Categories]
- *     parameters:
- *       - name: Authorization
- *         in: header
- *         required: true
- *         schema:
- *           type: string
- *       - name: vendorId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *       - name: categoryId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Category deactivated successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         category:
- *                           $ref: '#/components/schemas/Category'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Category not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       409:
- *         description: Conflict - Category already inactive
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/update-order:
- *   patch:
- *     summary: Update ordering for categories
- *     description: Owner-only endpoint to reorder categories for a vendor
- *     tags: [Categories]
- *     parameters:
- *       - name: Authorization
- *         in: header
- *         required: true
- *         schema:
- *           type: string
- *       - name: vendorId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *       - name: categoryId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
+ *           example: "64f1a2b3c4d5e6f7890a1234"
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdateCategoryOrderRequest'
+ *             type: object
+ *             required:
+ *               - isActive
+ *             properties:
+ *               isActive:
+ *                 type: boolean
+ *                 description: Menu category active status
+ *                 example: true
  *     responses:
  *       200:
- *         description: Category order updated successfully
+ *         description: Menu category active status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Menu category active status updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     menuCategory:
+ *                       $ref: '#/components/schemas/MenuCategory'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Menu category not found
+ *       409:
+ *         description: Conflict - Menu category active status is already set to this value
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/update-order:
+ *   patch:
+ *     summary: Update ordering for menu categories
+ *     description: Owner-only endpoint to reorder menu categories for a vendor
+ *     tags: ["Menu Categories - Vendor"]
+ *     parameters:
+ *       - name: Authorization
+ *         in: header
+ *         required: true
+ *         description: JWT access token
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: vendorId
+ *         in: path
+ *         required: true
+ *         description: Vendor ID
+ *         schema:
+ *           type: string
+ *           example: "64f1a2b3c4d5e6f7890a5678"
+ *       - name: menuCategoryId
+ *         in: path
+ *         required: true
+ *         description: Menu category ID
+ *         schema:
+ *           type: string
+ *           example: "64f1a2b3c4d5e6f7890a1234"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateMenuCategoryOrderRequest'
+ *     responses:
+ *       200:
+ *         description: Menu category order updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -536,10 +410,10 @@
  *                     data:
  *                       type: object
  *                       properties:
- *                         categories:
+ *                         menuCategories:
  *                           type: array
  *                           items:
- *                             $ref: '#/components/schemas/Category'
+ *                             $ref: '#/components/schemas/MenuCategory'
  *       401:
  *         description: Unauthorized
  *         content:
@@ -547,7 +421,7 @@
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
- *         description: Category or vendor not found
+ *         description: Menu category or vendor not found
  *         content:
  *           application/json:
  *             schema:

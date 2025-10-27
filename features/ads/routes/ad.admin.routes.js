@@ -1,14 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const adController = require("./ad.controller");
-const authMiddleware = require("../../middlewares/auth.middleware");
-const { uploadImage } = require("../../middlewares/uploadImage");
-const adminMiddleware = require("../../middlewares/admin.middleware");
-const isResourceExists = require("../../middlewares/isResourceExists");
-const Ad = require("./ad.model");
-
-// Import documentation
-require("./ad.docs");
+const adController = require("../ad.controller");
+const authMiddleware = require("../../../middlewares/auth.middleware");
+const { uploadImage } = require("../../../middlewares/uploadImage");
+const adminMiddleware = require("../../../middlewares/admin.middleware");
+const isResourceExists = require("../../../middlewares/isResourceExists");
+const Ad = require("../ad.model");
 
 // Routes
 router.post("", authMiddleware, adminMiddleware, adController.createAd);
@@ -20,11 +17,7 @@ router.post(
   uploadImage("ads", "adId"),
   adController.uploadAdImage
 );
-router.get(
-  "/:adId/image",
-  isResourceExists(Ad, "adId"),
-  adController.getAdImage
-);
+
 router.put(
   "/:adId",
   authMiddleware,
@@ -39,8 +32,7 @@ router.delete(
   isResourceExists(Ad, "adId"),
   adController.deleteAd
 );
-router.get("", adController.getAds);
-router.get("/:adId", isResourceExists(Ad, "adId"), adController.getAd);
+
 router.patch(
   "/:adId/activate",
   authMiddleware,
@@ -54,6 +46,13 @@ router.patch(
   adminMiddleware,
   isResourceExists(Ad, "adId"),
   adController.deactivateAd
+);
+
+router.get(
+  "/admin/all",
+  authMiddleware,
+  adminMiddleware,
+  adController.getAllAdsForAdmin
 );
 
 module.exports = router;

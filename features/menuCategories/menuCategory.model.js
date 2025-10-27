@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 let isActive = process.env.NODE_ENV === "production" ? false : true;
 
-const categorySchema = new Schema(
+const menuCategorySchema = new Schema(
   {
     name: {
       type: String,
@@ -33,7 +33,7 @@ const categorySchema = new Schema(
   }
 );
 
-categorySchema.index({ vendor: 1, isActive: 1, order: 1 });
-categorySchema.index({ vendor: 1, order: 1 });
+menuCategorySchema.index({ vendor: 1, isActive: 1, order: 1 });
+menuCategorySchema.index({ vendor: 1, order: 1 });
 
-module.exports = mongoose.model("Category", categorySchema);
+module.exports = mongoose.model("MenuCategory", menuCategorySchema);

@@ -65,8 +65,13 @@ const getVendorCategoryById = async (vendorCategory) => {
   return sanitizeVendorCategory(vendorCategory);
 };
 
-// Update status
-const updateStatus = async (vendorCategory, isActive) => {
+// Update active status
+const updateActive = async (vendorCategory, isActive) => {
+  if (vendorCategory.isActive === isActive) {
+    throw new ConflictError(
+      "Vendor category active status is already set to this value"
+    );
+  }
   vendorCategory.isActive = isActive;
   await vendorCategory.save();
   return sanitizeVendorCategory(vendorCategory);
@@ -120,7 +125,7 @@ module.exports = {
   deleteVendorCategory,
   getVendorCategories,
   getVendorCategoryById,
-  updateStatus,
+  updateActive,
   updateOrder,
   uploadImage,
 };

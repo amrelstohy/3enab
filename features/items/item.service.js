@@ -1,5 +1,5 @@
 const Item = require("./item.model");
-const { NotFoundError } = require("../../utils/errors");
+const { NotFoundError, ConflictError } = require("../../utils/errors");
 const { sanitizeItem, sanitizeItems } = require("./item.sanitizers");
 const { removeImage } = require("../../utils/image");
 const path = require("path");
@@ -61,11 +61,11 @@ const deleteItem = async (item) => {
 
 // Get all items
 const getItems = async (params) => {
-  const categoryId = params.categoryId;
+  const menuCategoryId = params.menuCategoryId;
 
   const items = await Item.find({
-    category: categoryId,
-    status: { $ne: "inactive" },
+    category: menuCategoryId,
+    isActive: true,
   }).lean();
 
   return sanitizeItems(items);
@@ -103,10 +103,22 @@ const updateOrder = async (category, orderedArray) => {
   return sanitizeItems(updated);
 };
 
-// Update item status
-const updateStatus = async (item, updateData) => {
-  const { status } = updateData;
-  item.status = status;
+// Update item availability
+const updateAvailability = async (item, isAvailable) => {
+  if (item.isAvailable === isAvailable) {
+    throw new ConflictError("Item availability is already set to this value");
+  }
+  item.isAvailable = isAvailable;
+  await item.save();
+  return sanitizeItem(item);
+};
+
+// Update item active status
+const updateActive = async (item, isActive) => {
+  if (item.isActive === isActive) {
+    throw new ConflictError("Item active status is already set to this value");
+  }
+  item.isActive = isActive;
   await item.save();
   return sanitizeItem(item);
 };
@@ -132,6 +144,17 @@ const removeDiscount = async (item) => {
   return sanitizeItem(item);
 };
 
+// Get all items for admin
+const getAllItemsForAdmin = async (params) => {
+  const menuCategoryId = params.menuCategoryId;
+
+  const items = await Item.find({
+    category: menuCategoryId,
+  }).lean();
+
+  return sanitizeItems(items);
+};
+
 module.exports = {
   createItem,
   uploadItemImage,
@@ -141,7 +164,9 @@ module.exports = {
   getItems,
   getItemById,
   updateOrder,
-  updateStatus,
+  updateAvailability,
+  updateActive,
   updateDiscount,
   removeDiscount,
+  getAllItemsForAdmin,
 };

@@ -39,8 +39,6 @@
  *           description: Date when the rate was last updated
  *     RateWithUser:
  *       type: object
- *       required:
- *         - rate
  *       properties:
  *         _id:
  *           type: string
@@ -107,29 +105,9 @@
  *           type: string
  *           description: Updated comment about the rating
  *           example: "Excellent service, highly recommended!"
- *     ErrorResponse:
- *       type: object
- *       properties:
- *         status:
- *           type: string
- *           example: "fail"
- *         message:
- *           type: string
- *           example: "Error message"
- *     SuccessResponse:
- *       type: object
- *       properties:
- *         status:
- *           type: string
- *           example: "success"
- *         message:
- *           type: string
- *           example: "Operation completed successfully"
- *         data:
- *           type: object
  * tags:
- *   name: Rates
- *   description: API endpoints for managing vendor ratings
+ *   name: Rates - User
+ *   description: User API endpoints for managing vendor ratings
  */
 
 /**
@@ -138,7 +116,7 @@
  *   post:
  *     summary: Create a new rating for a vendor
  *     description: Allows authenticated users to rate a vendor
- *     tags: [Rates]
+ *     tags: ["Rates - User"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -176,48 +154,31 @@
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Rate created successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         rate:
- *                           $ref: '#/components/schemas/Rate'
+ *                     rate:
+ *                       $ref: '#/components/schemas/Rate'
  *       401:
  *         description: Unauthorized - Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Vendor not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       409:
  *         description: User has already rated this vendor
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendors/{vendorId}/rates:
  *   get:
  *     summary: Get all ratings for a vendor
  *     description: Retrieve all ratings for a specific vendor with pagination support
- *     tags: [Rates]
+ *     tags: ["Rates - User"]
  *     parameters:
  *       - name: vendorId
  *         in: path
@@ -265,37 +226,33 @@
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Rates fetched successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         rates:
- *                           type: array
- *                           items:
- *                             $ref: '#/components/schemas/RateWithUser'
- *                         total:
- *                           type: integer
- *                         page:
- *                           type: integer
- *                         limit:
- *                           type: integer
- *                         totalPages:
- *                           type: integer
+ *                     rates:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/RateWithUser'
+ *                     total:
+ *                       type: integer
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
  *       404:
  *         description: Vendor not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 /**
@@ -304,7 +261,7 @@
  *   get:
  *     summary: Get a specific rating by ID
  *     description: Retrieve details of a specific rating
- *     tags: [Rates]
+ *     tags: ["Rates - User"]
  *     parameters:
  *       - name: vendorId
  *         in: path
@@ -326,36 +283,27 @@
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Rate fetched successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         rate:
- *                           $ref: '#/components/schemas/RateWithUser'
+ *                     rate:
+ *                       $ref: '#/components/schemas/RateWithUser'
  *       404:
  *         description: Rating or vendor not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendors/{vendorId}/rates/{rateId}:
  *   put:
  *     summary: Update a rating
  *     description: Update an existing rating (owner only)
- *     tags: [Rates]
+ *     tags: ["Rates - User"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -396,42 +344,29 @@
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Rate updated successfully"
+ *                 data:
+ *                   type: object
  *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         rate:
- *                           $ref: '#/components/schemas/Rate'
+ *                     rate:
+ *                       $ref: '#/components/schemas/Rate'
  *       401:
  *         description: Unauthorized - Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Rating or vendor not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendors/{vendorId}/rates/{rateId}:
  *   delete:
  *     summary: Delete a rating
  *     description: Delete an existing rating (owner only)
- *     tags: [Rates]
+ *     tags: ["Rates - User"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -470,20 +405,8 @@
  *                   example: "Rate deleted successfully"
  *       401:
  *         description: Unauthorized - Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Rating or vendor not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */

@@ -117,24 +117,57 @@ const getVendorById = async (vendorId) => {
   return sanitizeVendor(vendor);
 };
 
-// update active
-const updateActive = async (vendor) => {
-  if (vendor.isActive) {
-    throw new ConflictError("Vendor is already active");
+// update active status
+const updateActive = async (vendor, isActive) => {
+  if (vendor.isActive === isActive) {
+    throw new ConflictError(
+      "Vendor active status is already set to this value"
+    );
   }
-  vendor.isActive = true;
+  vendor.isActive = isActive;
   await vendor.save();
   return sanitizeVendor(vendor);
 };
 
-// update inactive
-const updateInactive = async (vendor) => {
-  if (!vendor.isActive) {
-    throw new ConflictError("Vendor is already inactive");
+// Get all vendors for admin
+const getAllVendorsForAdmin = async (query) => {
+  const categoryId = query.categoryId || "";
+  const orderBy = query.orderBy || "createdAt";
+  const order = query.order || "desc";
+  const search = query.search || "";
+  const page = query.page || 1;
+  const limit = query.limit || 10;
+
+  const sortOrder = order === "desc" ? -1 : 1;
+
+  const filter = {};
+  if (categoryId) {
+    filter.category = categoryId;
   }
-  vendor.isActive = false;
-  await vendor.save();
-  return sanitizeVendor(vendor);
+  if (search.trim()) {
+    filter.name = { $regex: search, $options: "i" };
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+
+  const [vendors, total] = await Promise.all([
+    Vendor.find(filter)
+      .sort({
+        [orderBy]: sortOrder,
+      })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean(),
+    Vendor.countDocuments(filter),
+  ]);
+
+  return {
+    vendors: sanitizeVendors(vendors),
+    total,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    totalPages: Math.ceil(total / parseInt(limit)),
+  };
 };
 
 module.exports = {
@@ -146,5 +179,5 @@ module.exports = {
   getVendors,
   getVendorById,
   updateActive,
-  updateInactive,
+  getAllVendorsForAdmin,
 };

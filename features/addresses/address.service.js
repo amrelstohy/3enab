@@ -45,6 +45,7 @@ const getAddresses = async (user) => {
 
 // Get address by id for a user
 const getAddressById = async (user, id) => {
+  console.log(user.id);
   const address = await Address.findById(id);
 
   if (!address) {
@@ -62,7 +63,7 @@ const getAddressById = async (user, id) => {
 
 // Get default address for a user
 const getDefaultAddress = async (user) => {
-  const address = await Address.findOne({ user: user._id, isDefault: true });
+  const address = await Address.findOne({ user: user.id, isDefault: true });
 
   if (!address) {
     throw new NotFoundError("Default address not found");

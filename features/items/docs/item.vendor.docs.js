@@ -60,11 +60,14 @@
  *               type: boolean
  *               description: Whether the discount is active
  *               example: true
- *         status:
- *           type: string
- *           enum: [active, inactive, available, unavailable]
- *           description: Status of the item
- *           example: "active"
+ *         isActive:
+ *           type: boolean
+ *           description: Whether the item is active
+ *           example: true
+ *         isAvailable:
+ *           type: boolean
+ *           description: Whether the item is available for ordering
+ *           example: true
  *         order:
  *           type: number
  *           description: Order of the item within its category
@@ -81,18 +84,6 @@
  *           type: string
  *           format: date-time
  *           description: Date when the item was last updated
- *       example:
- *         _id: "507f1f77bcf86cd799439011"
- *         name: "Delicious Pizza"
- *         description: "Fresh pizza with premium ingredients"
- *         basePrice: 25.99
- *         prepTime: 15
- *         discount: null
- *         status: "active"
- *         order: 1
- *         category: "507f1f77bcf86cd799439012"
- *         createdAt: "2024-01-01T00:00:00.000Z"
- *         updatedAt: "2024-01-01T00:00:00.000Z"
  *     CreateItemRequest:
  *       type: object
  *       required:
@@ -203,17 +194,17 @@
  *         data:
  *           type: object
  * tags:
- *   name: Items
- *   description: API endpoints for managing items
+ *   name: Items - Vendor
+ *   description: Vendor API endpoints for managing items
  */
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items:
  *   post:
  *     summary: Create a new item
- *     description: Create a new item in a specific category
- *     tags: [Items]
+ *     description: Create a new item in a specific category (Vendor only)
+ *     tags: ["Items - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -229,7 +220,7 @@
  *         schema:
  *           type: string
  *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
  *         description: Category ID
@@ -281,116 +272,11 @@
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items:
- *   get:
- *     summary: Get all items
- *     description: Retrieve all items in a specific category
- *     tags: [Items]
- *     parameters:
- *       - name: vendorId
- *         in: path
- *         required: true
- *         description: Vendor ID
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
- *         in: path
- *         required: true
- *         description: Category ID
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439012"
- *     responses:
- *       200:
- *         description: Items retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         items:
- *                           type: array
- *                           items:
- *                             $ref: '#/components/schemas/Item'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items/{itemId}:
- *   get:
- *     summary: Get a specific item by ID
- *     description: Retrieve details of a specific item
- *     tags: [Items]
- *     parameters:
- *       - name: vendorId
- *         in: path
- *         required: true
- *         description: Vendor ID
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
- *         in: path
- *         required: true
- *         description: Category ID
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439012"
- *       - name: itemId
- *         in: path
- *         required: true
- *         description: Unique identifier of the item
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439011"
- *     responses:
- *       200:
- *         description: Item retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/SuccessResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         item:
- *                           $ref: '#/components/schemas/Item'
- *       404:
- *         description: Item not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items/{itemId}:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/{itemId}:
  *   put:
  *     summary: Update an item
- *     description: Update an existing item
- *     tags: [Items]
+ *     description: Update an existing item (Vendor only)
+ *     tags: ["Items - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -406,7 +292,7 @@
  *         schema:
  *           type: string
  *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
  *         description: Category ID
@@ -471,11 +357,11 @@
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items/{itemId}:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/{itemId}:
  *   delete:
  *     summary: Delete an item
- *     description: Delete an existing item
- *     tags: [Items]
+ *     description: Delete an existing item (Vendor only)
+ *     tags: ["Items - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -491,7 +377,7 @@
  *         schema:
  *           type: string
  *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
  *         description: Category ID
@@ -541,11 +427,11 @@
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items/{itemId}/image:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/{itemId}/image:
  *   post:
  *     summary: Upload item image
- *     description: Upload an image for an existing item
- *     tags: [Items]
+ *     description: Upload an image for an existing item (Vendor only)
+ *     tags: ["Items - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -561,7 +447,7 @@
  *         schema:
  *           type: string
  *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
  *         description: Category ID
@@ -629,70 +515,11 @@
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items/{itemId}/image:
- *   get:
- *     summary: Get item image
- *     description: Retrieve the image file for a specific item
- *     tags: [Items]
- *     parameters:
- *       - name: vendorId
- *         in: path
- *         required: true
- *         description: Vendor ID
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
- *         in: path
- *         required: true
- *         description: Category ID
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439012"
- *       - name: itemId
- *         in: path
- *         required: true
- *         description: Unique identifier of the item
- *         schema:
- *           type: string
- *           example: "507f1f77bcf86cd799439011"
- *     responses:
- *       200:
- *         description: Image file retrieved successfully
- *         content:
- *           image/jpeg:
- *             schema:
- *               type: string
- *               format: binary
- *           image/png:
- *             schema:
- *               type: string
- *               format: binary
- *           image/webp:
- *             schema:
- *               type: string
- *               format: binary
- *       404:
- *         description: Item not found or image not available
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items/{itemId}/status:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/{itemId}/status:
  *   patch:
  *     summary: Update item status
- *     description: Update the status of an existing item
- *     tags: [Items]
+ *     description: Update the status of an existing item (Vendor only)
+ *     tags: ["Items - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -708,7 +535,7 @@
  *         schema:
  *           type: string
  *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
  *         description: Category ID
@@ -770,11 +597,11 @@
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items/{itemId}/discount:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/{itemId}/discount:
  *   patch:
  *     summary: Update item discount
- *     description: Update discount information for an existing item
- *     tags: [Items]
+ *     description: Update discount information for an existing item (Vendor only)
+ *     tags: ["Items - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -790,7 +617,7 @@
  *         schema:
  *           type: string
  *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
  *         description: Category ID
@@ -827,9 +654,6 @@
  *                 startDate: "2024-01-01T00:00:00.000Z"
  *                 endDate: "2024-12-31T23:59:59.999Z"
  *                 isActive: true
- *             no_discount:
- *               summary: No discount (null)
- *               value: null
  *     responses:
  *       200:
  *         description: Item discount updated successfully
@@ -867,11 +691,11 @@
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items/{itemId}/discount:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/{itemId}/discount:
  *   delete:
  *     summary: Remove item discount
- *     description: Remove discount information from an existing item
- *     tags: [Items]
+ *     description: Remove discount information from an existing item (Vendor only)
+ *     tags: ["Items - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -887,7 +711,7 @@
  *         schema:
  *           type: string
  *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
  *         description: Category ID
@@ -938,11 +762,11 @@
 
 /**
  * @swagger
- * /api/v1/vendors/{vendorId}/categories/{categoryId}/items/order:
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/order:
  *   patch:
  *     summary: Update items order
- *     description: Update the order of items within a category
- *     tags: [Items]
+ *     description: Update the order of items within a category (Vendor only)
+ *     tags: ["Items - Vendor"]
  *     parameters:
  *       - name: Authorization
  *         in: header
@@ -958,7 +782,7 @@
  *         schema:
  *           type: string
  *           example: "507f1f77bcf86cd799439010"
- *       - name: categoryId
+ *       - name: menuCategoryId
  *         in: path
  *         required: true
  *         description: Category ID
@@ -1011,4 +835,160 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/{itemId}/availability:
+ *   patch:
+ *     summary: Update item availability
+ *     description: Update the availability status of an item (Vendor only)
+ *     tags: ["Items - Vendor"]
+ *     parameters:
+ *       - name: Authorization
+ *         in: header
+ *         required: true
+ *         description: JWT access token
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: vendorId
+ *         in: path
+ *         required: true
+ *         description: Vendor ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439010"
+ *       - name: menuCategoryId
+ *         in: path
+ *         required: true
+ *         description: Category ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439012"
+ *       - name: itemId
+ *         in: path
+ *         required: true
+ *         description: Item ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439011"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - isAvailable
+ *             properties:
+ *               isAvailable:
+ *                 type: boolean
+ *                 description: Item availability status
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Item availability updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Item availability updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     item:
+ *                       $ref: '#/components/schemas/Item'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Item not found
+ *       409:
+ *         description: Conflict - Item availability is already set to this value
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/{itemId}/active:
+ *   patch:
+ *     summary: Update item active status
+ *     description: Update the active status of an item (Vendor only)
+ *     tags: ["Items - Vendor"]
+ *     parameters:
+ *       - name: Authorization
+ *         in: header
+ *         required: true
+ *         description: JWT access token
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: vendorId
+ *         in: path
+ *         required: true
+ *         description: Vendor ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439010"
+ *       - name: menuCategoryId
+ *         in: path
+ *         required: true
+ *         description: Category ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439012"
+ *       - name: itemId
+ *         in: path
+ *         required: true
+ *         description: Item ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439011"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - isActive
+ *             properties:
+ *               isActive:
+ *                 type: boolean
+ *                 description: Item active status
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Item active status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Item active status updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     item:
+ *                       $ref: '#/components/schemas/Item'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Item not found
+ *       409:
+ *         description: Conflict - Item active status is already set to this value
+ *       500:
+ *         description: Internal server error
  */

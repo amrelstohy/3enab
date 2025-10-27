@@ -6,8 +6,8 @@ const authMiddleware = require("../../middlewares/auth.middleware");
 // Address routes for a user
 router.post("", authMiddleware, addressController.createAddress);
 router.get("", authMiddleware, addressController.getAddresses);
-router.get("/:id", authMiddleware, addressController.getAddressById);
 router.get("/default", authMiddleware, addressController.getDefaultAddress);
+router.get("/:id", authMiddleware, addressController.getAddressById);
 router.put("/:id", authMiddleware, addressController.updateAddress);
 router.delete("/:id", authMiddleware, addressController.deleteAddress);
 router.patch("/:id", authMiddleware, addressController.setDefaultAddress);
