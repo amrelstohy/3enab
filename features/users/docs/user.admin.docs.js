@@ -17,10 +17,23 @@
  *           type: string
  *           description: User's email address
  *           example: "john@example.com"
+ *         isEmailVerified:
+ *           type: boolean
+ *           description: Whether the email is verified
+ *           example: true
  *         phone:
- *           type: string
+ *           type: number
  *           description: User's phone number
- *           example: "+201234567890"
+ *           example: 1234567890
+ *         isPhoneVerified:
+ *           type: boolean
+ *           description: Whether the phone is verified
+ *           example: true
+ *         type:
+ *           type: string
+ *           enum: ["user", "admin", "vendor", "delivery"]
+ *           description: User type
+ *           example: "admin"
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -34,8 +47,8 @@
  *           type: string
  *           example: "John Doe Updated"
  *         phone:
- *           type: string
- *           example: "+201234567890"
+ *           type: number
+ *           example: 1234567890
  *     ChangePasswordRequest:
  *       type: object
  *       required:

@@ -7,9 +7,10 @@ const {
   NotFoundError,
   ValidationError,
   ConflictError,
+  BadRequestError,
 } = require("../../utils/errors");
 const sendEmail = require("../../utils/email");
-// const { sendSMS } = require("../../utils/sms");
+const sendOTP = require("../../utils/sentOTP");
 const {
   generateRefreshToken,
   generateAccessToken,
@@ -24,7 +25,7 @@ const {
 } = require("../../utils/verifyOTP");
 
 // Register service
-const register = async ({ email, password, name, phone }) => {
+const register = async ({ email, password, name, phone }, appType) => {
   const phoneExists = await User.findOne({ phone });
 
   if (phoneExists) {
@@ -39,7 +40,9 @@ const register = async ({ email, password, name, phone }) => {
   }
 
   const phoneVerificationOTP = "1234"; //OTPGenerator(4);
-  //sendSMS({});
+  const fullPhoneNumber = `+20${phone}`;
+
+  // await sendOTP(fullPhoneNumber, phoneVerificationOTP);
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -50,6 +53,7 @@ const register = async ({ email, password, name, phone }) => {
     phone,
     phoneVerificationOTP,
     phoneVerificationOTPExpires: new Date(Date.now() + 10 * 60 * 1000),
+    type: appType,
   });
 
   const refreshToken = generateRefreshToken(user._id);
@@ -66,11 +70,16 @@ const register = async ({ email, password, name, phone }) => {
 };
 
 // Login service
-const login = async ({ phone, password }) => {
+const login = async ({ phone, password }, appType) => {
   const user = await User.findOne({ phone });
 
   if (!user) {
     throw new NotFoundError("Invalid phone number");
+  }
+  if (user.type !== appType) {
+    throw new UnauthorizedError(
+      "This user is not allowed to login to this app."
+    );
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);

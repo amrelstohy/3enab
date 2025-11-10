@@ -5,18 +5,19 @@ const { removeImage } = require("../../utils/image");
 const path = require("path");
 
 // Create item
-const createItem = async (itemData, category) => {
+const createItem = async (itemData, menuCategoryId, vendorId) => {
   const { name, description, basePrice, prepTime } = itemData;
 
-  const itemNum = await Item.countDocuments({ category });
+  const itemNum = await Item.countDocuments({ category: menuCategoryId });
 
   const item = new Item({
     name,
     description,
     basePrice,
-    category: category._id,
+    category: menuCategoryId,
     order: itemNum + 1,
     prepTime,
+    vendor: vendorId,
   });
 
   await item.save();
@@ -77,9 +78,9 @@ const getItemById = async (item) => {
 };
 
 // Update order
-const updateOrder = async (category, orderedArray) => {
+const updateOrder = async (menuCategory, orderedArray) => {
   const allItems = await Item.find({
-    category: category._id,
+    category: menuCategory._id,
   }).select("_id");
 
   const allIds = allItems.map((item) => item._id.toString());
@@ -93,13 +94,13 @@ const updateOrder = async (category, orderedArray) => {
   await Item.bulkWrite(
     orderedArray.map((id, index) => ({
       updateOne: {
-        filter: { _id: id, category: category._id },
+        filter: { _id: id, category: menuCategory._id },
         update: { order: index + 1 },
       },
     }))
   );
 
-  const updated = await Item.find({ category: category._id }).sort("order");
+  const updated = await Item.find({ category: menuCategory._id }).sort("order");
   return sanitizeItems(updated);
 };
 

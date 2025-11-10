@@ -9,6 +9,7 @@
  *         - description
  *         - basePrice
  *         - category
+ *         - vendor
  *       properties:
  *         _id:
  *           type: string
@@ -27,9 +28,10 @@
  *           description: Base price of the item
  *           example: 25.99
  *         prepTime:
- *           type: number
- *           description: Preparation time in minutes
- *           example: 15
+ *           type: string
+ *           nullable: true
+ *           description: Preparation time (e.g., "15 minutes", "30-45 min")
+ *           example: "15 minutes"
  *         discount:
  *           type: object
  *           nullable: true
@@ -76,6 +78,15 @@
  *           type: string
  *           description: Category ID the item belongs to
  *           example: "507f1f77bcf86cd799439012"
+ *         vendor:
+ *           type: string
+ *           description: Vendor ID the item belongs to
+ *           example: "507f1f77bcf86cd799439013"
+ *         imagePath:
+ *           type: string
+ *           nullable: true
+ *           description: Path to the item image
+ *           example: "/uploads/items/image.jpg"
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -178,6 +189,50 @@
  *         schema:
  *           type: string
  *           example: "507f1f77bcf86cd799439012"
+ *       - name: itemId
+ *         in: path
+ *         required: true
+ *         description: Unique identifier of the item
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439011"
+ *     responses:
+ *       200:
+ *         description: Item retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         item:
+ *                           $ref: '#/components/schemas/Item'
+ *       404:
+ *         description: Item not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /api/v1/items/{itemId}:
+ *   get:
+ *     summary: Get item by ID (Direct access)
+ *     description: Retrieve details of a specific item by its ID directly, without needing vendor or category information
+ *     tags: ["Items - User"]
+ *     parameters:
  *       - name: itemId
  *         in: path
  *         required: true

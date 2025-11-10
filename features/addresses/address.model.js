@@ -27,6 +27,11 @@ const addressSchema = new Schema(
         required: true,
       },
     },
+    deliveryArea: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DeliveryArea",
+      required: true,
+    },
     isDefault: {
       type: Boolean,
       default: false,

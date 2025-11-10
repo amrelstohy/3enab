@@ -51,7 +51,15 @@ const deleteVendor = async (req, res) => {
   });
 };
 
-// get vendors
+// get my vendors
+const getMyVendors = async (req, res) => {
+  const vendors = await vendorService.getMyVendors(req.user);
+  res.status(200).json({
+    status: "success",
+    message: "vendors fetched successfully",
+    data: { vendors },
+  });
+};
 const getVendors = async (req, res) => {
   const data = await vendorService.getVendors(req.query);
   res.status(200).json({
@@ -101,6 +109,7 @@ module.exports = {
   uploadLogo,
   getLogo,
   deleteVendor,
+  getMyVendors,
   getVendors,
   getVendorById,
   updateActive,

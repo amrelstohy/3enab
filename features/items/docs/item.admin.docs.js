@@ -9,6 +9,7 @@
  *         - description
  *         - basePrice
  *         - category
+ *         - vendor
  *       properties:
  *         _id:
  *           type: string
@@ -27,9 +28,10 @@
  *           description: Base price of the item
  *           example: 25.99
  *         prepTime:
- *           type: number
- *           description: Preparation time in minutes
- *           example: 15
+ *           type: string
+ *           nullable: true
+ *           description: Preparation time (e.g., "15 minutes", "30-45 min")
+ *           example: "15 minutes"
  *         discount:
  *           type: object
  *           nullable: true
@@ -76,6 +78,15 @@
  *           type: string
  *           description: Category ID the item belongs to
  *           example: "507f1f77bcf86cd799439012"
+ *         vendor:
+ *           type: string
+ *           description: Vendor ID the item belongs to
+ *           example: "507f1f77bcf86cd799439013"
+ *         imagePath:
+ *           type: string
+ *           nullable: true
+ *           description: Path to the item image
+ *           example: "/uploads/items/image.jpg"
  *         createdAt:
  *           type: string
  *           format: date-time

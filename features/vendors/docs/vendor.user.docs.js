@@ -17,26 +17,29 @@
  *           type: string
  *           description: Vendor description
  *           example: "Best pizza in town"
- *         address:
+ *         category:
  *           type: string
- *           description: Vendor address
- *           example: "123 Main St, Cairo"
- *         phone:
- *           type: string
- *           description: Vendor phone number
- *           example: "+201234567890"
- *         owner:
- *           type: string
- *           description: Owner user ID
- *           example: "507f1f77bcf86cd799439012"
+ *           description: Vendor category ID
+ *           example: "507f1f77bcf86cd799439013"
+ *         workingHours:
+ *           type: object
+ *           properties:
+ *             open:
+ *               type: string
+ *               example: "09:00"
+ *             close:
+ *               type: string
+ *               example: "21:00"
+ *             days:
+ *               type: array
+ *               items:
+ *                 type: string
+ *               example: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
  *         logoPath:
  *           type: string
+ *           nullable: true
  *           description: Path to vendor logo
  *           example: "/uploads/vendorsLogos/507f1f77bcf86cd799439011.jpg"
- *         isActive:
- *           type: boolean
- *           description: Whether the vendor is active
- *           example: true
  *         averageRate:
  *           type: number
  *           description: Average rating
@@ -53,16 +56,52 @@
  *           format: date-time
  * tags:
  *   name: Vendors - User
- *   description: Public API endpoints for viewing vendors
+ *   description: Public user API endpoints for viewing vendors
  */
 
 /**
  * @swagger
  * /api/v1/vendors:
  *   get:
- *     summary: Get all vendors
- *     description: Retrieve a list of all active vendors
+ *     summary: Get all active vendors
+ *     description: Public endpoint to retrieve all active vendors with pagination
  *     tags: ["Vendors - User"]
+ *     parameters:
+ *       - name: categoryId
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Filter by category ID
+ *       - name: search
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Search by vendor name
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: number
+ *           default: 1
+ *         description: Page number
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: number
+ *           default: 10
+ *         description: Items per page
+ *       - name: orderBy
+ *         in: query
+ *         schema:
+ *           type: string
+ *           default: "createdAt"
+ *         description: Sort field
+ *       - name: order
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: "desc"
+ *         description: Sort order
  *     responses:
  *       200:
  *         description: Vendors retrieved successfully
@@ -81,9 +120,24 @@
  *                   type: object
  *                   properties:
  *                     vendors:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/Vendor'
+ *                       type: object
+ *                       properties:
+ *                         vendors:
+ *                           type: array
+ *                           items:
+ *                             $ref: '#/components/schemas/Vendor'
+ *                         total:
+ *                           type: number
+ *                           example: 50
+ *                         page:
+ *                           type: number
+ *                           example: 1
+ *                         limit:
+ *                           type: number
+ *                           example: 10
+ *                         totalPages:
+ *                           type: number
+ *                           example: 5
  *       500:
  *         description: Internal server error
  */
@@ -92,17 +146,16 @@
  * @swagger
  * /api/v1/vendors/{vendorId}:
  *   get:
- *     summary: Get a specific vendor by ID
- *     description: Retrieve details of a specific vendor
+ *     summary: Get vendor by ID
+ *     description: Public endpoint to retrieve a specific active vendor
  *     tags: ["Vendors - User"]
  *     parameters:
  *       - name: vendorId
  *         in: path
  *         required: true
- *         description: Vendor ID
  *         schema:
  *           type: string
- *           example: "507f1f77bcf86cd799439011"
+ *         description: Vendor ID
  *     responses:
  *       200:
  *         description: Vendor retrieved successfully
@@ -133,7 +186,7 @@
  * /api/v1/vendors/{vendorId}/logo:
  *   get:
  *     summary: Get vendor logo
- *     description: Retrieve the logo image for a specific vendor
+ *     description: Public endpoint to retrieve vendor logo image
  *     tags: ["Vendors - User"]
  *     parameters:
  *       - name: vendorId
@@ -146,8 +199,19 @@
  *     responses:
  *       200:
  *         description: Logo retrieved successfully
+ *         content:
+ *           image/jpeg:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *           image/png:
+ *             schema:
+ *               type: string
+ *               format: binary
  *       404:
- *         description: Vendor or logo not found
+ *         description: Logo not found
  *       500:
  *         description: Internal server error
  */
+
+module.exports = {};

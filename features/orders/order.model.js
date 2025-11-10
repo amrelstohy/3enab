@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Counter = require("../counters/counter.model");
 
 const orderItemSchema = new mongoose.Schema(
   {
@@ -12,7 +13,12 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
-    price: {
+    unitPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    totalPrice: {
       type: Number,
       required: true,
       min: 0,
@@ -23,6 +29,11 @@ const orderItemSchema = new mongoose.Schema(
 
 const orderSchema = new mongoose.Schema(
   {
+    orderNumber: {
+      type: Number,
+      required: true,
+      index: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -48,6 +59,11 @@ const orderSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    deliveryFee: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
     total: {
       type: Number,
       required: true,
@@ -62,7 +78,6 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: [
         "pending",
-        "confirmed",
         "preparing",
         "out_for_delivery",
         "delivered",
@@ -91,23 +106,18 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-orderSchema.methods.calculateTotals = async function () {
-  // populate items for price if needed
-  if (!this.items || !this.items.length)
-    throw new Error("Cannot calculate totals for empty order.");
+orderSchema.pre("validate", async function (next) {
+  if (this.isNew) {
+    const counter = await Counter.findOneAndUpdate(
+      { name: "orderNumber", vendor: this.vendor },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
 
-  const subtotal = this.items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
-
-  this.subtotal = subtotal;
-  this.total = subtotal - (this.discount || 0);
-  if (this.total < 0) this.total = 0;
-
-  return this.total;
-};
+    this.orderNumber = counter.seq;
+  }
+  next();
+});
 
 const Order = mongoose.model("Order", orderSchema);
-
 module.exports = Order;

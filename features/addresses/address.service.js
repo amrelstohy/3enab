@@ -8,8 +8,15 @@ const { sanitizeAddress, sanitizeAddresses } = require("./address.sanitizers");
 
 // Create a new address for a user
 const createAddress = async (user, addressData) => {
-  const { name, fullAddress, latitude, longitude, isDefault, notes } =
-    addressData;
+  const {
+    name,
+    fullAddress,
+    latitude,
+    longitude,
+    isDefault,
+    notes,
+    deliveryAreaId,
+  } = addressData;
 
   const address = new Address({
     user: user._id,
@@ -19,6 +26,7 @@ const createAddress = async (user, addressData) => {
       type: "Point",
       coordinates: [longitude, latitude],
     },
+    deliveryArea: deliveryAreaId,
     isDefault,
     notes,
   });
@@ -74,8 +82,15 @@ const getDefaultAddress = async (user) => {
 
 // Update address for a user
 const updateAddress = async (id, addressData, user) => {
-  const { name, fullAddress, latitude, longitude, isDefault, notes } =
-    addressData;
+  const {
+    name,
+    fullAddress,
+    latitude,
+    longitude,
+    isDefault,
+    notes,
+    deliveryAreaId,
+  } = addressData;
 
   const address = await Address.findById(id);
 
@@ -92,6 +107,7 @@ const updateAddress = async (id, addressData, user) => {
   address.name = name;
   address.fullAddress = fullAddress;
   address.location.coordinates = [longitude, latitude];
+  address.deliveryArea = deliveryAreaId;
   address.isDefault = isDefault;
   address.notes = notes;
   await address.save();

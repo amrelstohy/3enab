@@ -1,26 +1,28 @@
 const express = require("express");
 const router = express.Router({ mergeParams: true });
-const authMiddleware = require("../../../middlewares/auth.middleware");
 const itemController = require("../item.controller");
 const isResourceExists = require("../../../middlewares/isResourceExists");
 const Item = require("../item.model");
 const Vendor = require("../../vendors/vendor.model");
 const checkOwnerShip = require("../../../middlewares/checkOwnerShip");
 const { uploadImage } = require("../../../middlewares/uploadImage");
-const adminMiddleware = require("../../../middlewares/admin.middleware");
 
 // Create item
-router.post(
-  "",
-  authMiddleware,
-  checkOwnerShip(Vendor),
-  itemController.createItem
-);
+router.post("", checkOwnerShip(Vendor), itemController.createItem);
 
+// get items
+router.get("", checkOwnerShip(Vendor), itemController.getItems);
+
+// get item by id
+router.get(
+  "/:itemId",
+  isResourceExists(Item, "itemId"),
+  checkOwnerShip(Vendor),
+  itemController.getItem
+);
 // Upload item image
 router.post(
   "/:itemId/image",
-  authMiddleware,
   isResourceExists(Item, "itemId"),
   checkOwnerShip(Vendor),
   uploadImage("items", "itemId"),
@@ -30,7 +32,6 @@ router.post(
 // Update item
 router.put(
   "/:itemId",
-  authMiddleware,
   isResourceExists(Item, "itemId"),
   checkOwnerShip(Vendor),
   itemController.updateItem
@@ -39,24 +40,17 @@ router.put(
 // Delete item
 router.delete(
   "/:itemId",
-  authMiddleware,
   isResourceExists(Item, "itemId"),
   checkOwnerShip(Vendor),
   itemController.deleteItem
 );
 
 // Update order
-router.patch(
-  "/order",
-  authMiddleware,
-  checkOwnerShip(Vendor),
-  itemController.updateOrder
-);
+router.patch("/order", checkOwnerShip(Vendor), itemController.updateOrder);
 
 // Update item availability
 router.patch(
   "/:itemId/availability",
-  authMiddleware,
   isResourceExists(Item, "itemId"),
   checkOwnerShip(Vendor),
   itemController.updateAvailability
@@ -65,7 +59,6 @@ router.patch(
 // Update item active
 router.patch(
   "/:itemId/active",
-  authMiddleware,
   isResourceExists(Item, "itemId"),
   checkOwnerShip(Vendor),
   itemController.updateActive
@@ -74,7 +67,6 @@ router.patch(
 // Update item discount
 router.patch(
   "/:itemId/discount",
-  authMiddleware,
   isResourceExists(Item, "itemId"),
   checkOwnerShip(Vendor),
   itemController.updateDiscount
@@ -83,7 +75,6 @@ router.patch(
 // Remove item discount
 router.delete(
   "/:itemId/discount",
-  authMiddleware,
   isResourceExists(Item, "itemId"),
   checkOwnerShip(Vendor),
   itemController.removeDiscount

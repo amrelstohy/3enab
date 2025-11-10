@@ -5,6 +5,7 @@ const sanitizeAddress = (address) => {
     fullAddress: address.fullAddress,
     latitude: address.location.coordinates[1],
     longitude: address.location.coordinates[0],
+    deliveryArea: address.deliveryArea,
     isDefault: address.isDefault,
     notes: address.notes,
     createdAt: address.createdAt,

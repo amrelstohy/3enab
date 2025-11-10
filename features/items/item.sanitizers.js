@@ -15,6 +15,7 @@ const sanitizeItem = (item) => {
     isActive: item.isActive,
     isAvailable: item.isAvailable,
     order: item.order,
+    vendor: item.vendor,
     category: item.category,
     prepTime: item.prepTime,
     imagePath: imagePath,
