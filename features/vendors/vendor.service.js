@@ -3,16 +3,22 @@ const { NotFoundError, ConflictError } = require("../../utils/errors");
 const { sanitizeVendor, sanitizeVendors } = require("./vendor.sanitizers");
 const path = require("path");
 const { removeImage } = require("../../utils/image");
+const Category = require("../vendorCategories/vendorCategory.model");
 
 // Create vendor
 const createVendor = async (user, vendorData) => {
   const { name, description, categoryId, openHour, closeHour, days } =
     vendorData;
 
+  const category = await Category.findById(categoryId);
+  if (!category) {
+    throw new NotFoundError("Category not found");
+  }
+
   const vendor = new Vendor({
     name,
     description,
-    category: categoryId,
+    category: category._id,
     workingHours: { open: openHour, close: closeHour, days },
     owner: user._id,
   });
@@ -26,9 +32,14 @@ const updateVendor = async (vendor, updateData) => {
   const { name, description, categoryId, openHour, closeHour, days } =
     updateData;
 
+  const category = await Category.findById(categoryId);
+  if (!category) {
+    throw new NotFoundError("Category not found");
+  }
+
   vendor.name = name;
   vendor.description = description;
-  vendor.category = categoryId;
+  vendor.category = category._id;
   vendor.workingHours = { open: openHour, close: closeHour, days };
   await vendor.save();
 
@@ -63,6 +74,12 @@ const deleteVendor = async (vendor) => {
   if (vendor.logoPath) {
     await removeImage(vendor.logoPath);
   }
+};
+
+// Get my vendors
+const getMyVendors = async (user) => {
+  const vendors = await Vendor.find({ owner: user._id }).lean();
+  return sanitizeVendors(vendors);
 };
 
 // Get all vendors
@@ -176,6 +193,7 @@ module.exports = {
   uploadLogo,
   getLogo,
   deleteVendor,
+  getMyVendors,
   getVendors,
   getVendorById,
   updateActive,

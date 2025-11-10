@@ -29,6 +29,10 @@ const authMiddleware = async (req, res, next) => {
     throw new UnauthorizedError("This user is not logged in");
   }
 
+  if (user.type !== req.appType && user.type !== "admin") {
+    throw new UnauthorizedError("This user is not allowed to access this app");
+  }
+
   req.user = user;
 
   next();

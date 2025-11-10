@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const vendorController = require("../vendor.controller");
-const authMiddleware = require("../../../middlewares/auth.middleware");
 const { uploadImage } = require("../../../middlewares/uploadImage");
 const checkOwnerShip = require("../../../middlewares/checkOwnerShip");
 const isResourceExists = require("../../../middlewares/isResourceExists");
@@ -10,11 +9,12 @@ const menuCategoryVendorRoutes = require("../../menuCategories/routes/menuCatego
 const rateVendorRoutes = require("../../rates/routes/rate.vendor.routes");
 
 // Vendor routes - CRUD operations
-router.post("", authMiddleware, vendorController.createVendor);
+router.post("", vendorController.createVendor);
+
+router.get("", vendorController.getMyVendors);
 
 router.post(
   "/:vendorId/logo",
-  authMiddleware,
   isResourceExists(Vendor, "vendorId"),
   checkOwnerShip(Vendor),
   uploadImage("vendorsLogos", "vendorId"),
@@ -23,7 +23,6 @@ router.post(
 
 router.put(
   "/:vendorId",
-  authMiddleware,
   isResourceExists(Vendor, "vendorId"),
   checkOwnerShip(Vendor),
   vendorController.updateVendor
@@ -31,7 +30,6 @@ router.put(
 
 router.delete(
   "/:vendorId",
-  authMiddleware,
   isResourceExists(Vendor, "vendorId"),
   checkOwnerShip(Vendor),
   vendorController.deleteVendor
@@ -39,7 +37,6 @@ router.delete(
 
 router.patch(
   "/:vendorId/active",
-  authMiddleware,
   isResourceExists(Vendor, "vendorId"),
   checkOwnerShip(Vendor),
   vendorController.updateActive

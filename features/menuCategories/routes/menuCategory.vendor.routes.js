@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router({ mergeParams: true });
 const menuCategoryController = require("../menuCategory.controller");
-const authMiddleware = require("../../../middlewares/auth.middleware");
 const checkOwnerShip = require("../../../middlewares/checkOwnerShip");
 const isResourceExists = require("../../../middlewares/isResourceExists");
 const MenuCategory = require("../menuCategory.model");
@@ -11,14 +10,27 @@ const itemVendorRoutes = require("../../items/routes/item.vendor.routes");
 // Vendor routes - Full CRUD
 router.post(
   "",
-  authMiddleware,
   checkOwnerShip(Vendor),
   menuCategoryController.createMenuCategory
 );
 
+// get menu categories
+router.get(
+  "",
+  checkOwnerShip(Vendor),
+  menuCategoryController.getMenuCategories
+);
+
+// get menu category by id
+router.get(
+  "/:menuCategoryId",
+  isResourceExists(MenuCategory, "menuCategoryId"),
+  checkOwnerShip(Vendor),
+  menuCategoryController.getMenuCategory
+);
+
 router.put(
   "/:menuCategoryId",
-  authMiddleware,
   isResourceExists(MenuCategory, "menuCategoryId"),
   checkOwnerShip(Vendor),
   menuCategoryController.updateMenuCategory
@@ -26,7 +38,6 @@ router.put(
 
 router.delete(
   "/:menuCategoryId",
-  authMiddleware,
   isResourceExists(MenuCategory, "menuCategoryId"),
   checkOwnerShip(Vendor),
   menuCategoryController.deleteMenuCategory
@@ -34,7 +45,6 @@ router.delete(
 
 router.patch(
   "/:menuCategoryId/active",
-  authMiddleware,
   isResourceExists(MenuCategory, "menuCategoryId"),
   checkOwnerShip(Vendor),
   menuCategoryController.updateActive
@@ -42,7 +52,6 @@ router.patch(
 
 router.patch(
   "/:menuCategoryId/update-order",
-  authMiddleware,
   isResourceExists(MenuCategory, "menuCategoryId"),
   checkOwnerShip(Vendor),
   menuCategoryController.updateMenuCategoryOrder

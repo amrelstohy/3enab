@@ -2,7 +2,11 @@ const itemService = require("./item.service");
 
 // Create item
 const createItem = async (req, res) => {
-  const item = await itemService.createItem(req.body, req.category);
+  const item = await itemService.createItem(
+    req.body,
+    req.params.menuCategoryId,
+    req.params.vendorId
+  );
   res.status(201).json({
     status: "success",
     message: "Item created successfully",
@@ -68,7 +72,7 @@ const getItem = async (req, res) => {
 // Update item order
 const updateOrder = async (req, res) => {
   const items = await itemService.updateOrder(
-    req.category,
+    req.menuCategory,
     req.body.orderedArray
   );
   res.status(200).json({
@@ -80,7 +84,10 @@ const updateOrder = async (req, res) => {
 
 // Update item availability
 const updateAvailability = async (req, res) => {
-  const item = await itemService.updateAvailability(req.item, req.body.isAvailable);
+  const item = await itemService.updateAvailability(
+    req.item,
+    req.body.isAvailable
+  );
   res.status(200).json({
     status: "success",
     message: "Item availability updated successfully",

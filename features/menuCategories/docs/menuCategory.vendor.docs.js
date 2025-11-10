@@ -160,7 +160,125 @@
 
 /**
  * @swagger
+ * /api/v1/vendor/vendors/{vendorId}/categories:
+ *   get:
+ *     summary: Get all menu categories for a vendor
+ *     description: Owner-only endpoint to retrieve all menu categories for their vendor
+ *     tags: ["Menu Categories - Vendor"]
+ *     parameters:
+ *       - name: Authorization
+ *         in: header
+ *         required: true
+ *         description: JWT access token
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: vendorId
+ *         in: path
+ *         required: true
+ *         description: Vendor ID
+ *         schema:
+ *           type: string
+ *           example: "64f1a2b3c4d5e6f7890a5678"
+ *     responses:
+ *       200:
+ *         description: Menu categories retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         menuCategories:
+ *                           type: array
+ *                           items:
+ *                             $ref: '#/components/schemas/MenuCategory'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Vendor not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
  * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}:
+ *   get:
+ *     summary: Get a single menu category by ID
+ *     description: Owner-only endpoint to retrieve a specific menu category
+ *     tags: ["Menu Categories - Vendor"]
+ *     parameters:
+ *       - name: Authorization
+ *         in: header
+ *         required: true
+ *         description: JWT access token
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: vendorId
+ *         in: path
+ *         required: true
+ *         description: Vendor ID
+ *         schema:
+ *           type: string
+ *           example: "64f1a2b3c4d5e6f7890a5678"
+ *       - name: menuCategoryId
+ *         in: path
+ *         required: true
+ *         description: Menu category ID
+ *         schema:
+ *           type: string
+ *           example: "64f1a2b3c4d5e6f7890a1234"
+ *     responses:
+ *       200:
+ *         description: Menu category retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         menuCategory:
+ *                           $ref: '#/components/schemas/MenuCategory'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Menu category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *   put:
  *     summary: Update a menu category
  *     description: Owner-only endpoint to update menu category

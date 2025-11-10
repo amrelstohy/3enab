@@ -56,9 +56,10 @@ const userSchema = new Schema(
       type: Date,
       default: null,
     },
-    isAdmin: {
-      type: Boolean,
-      default: false,
+    type: {
+      type: String,
+      enum: ["user", "admin", "vendor", "delivery"],
+      required: true,
     },
   },
   { timestamps: true }

@@ -17,7 +17,7 @@ const sanitizeUser = (user) => {
     isEmailVerified: user.isEmailVerified,
     phone: user.phone,
     isPhoneVerified: user.isPhoneVerified,
-    isAdmin: user.isAdmin,
+    type: user.type,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

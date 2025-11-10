@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const Order = require("../orders/order.model");
+
+const isActive = process.env.NODE_ENV === "production" ? false : true;
 
 const couponSchema = new Schema(
   {
@@ -21,6 +22,16 @@ const couponSchema = new Schema(
       required: true,
       min: 0,
     },
+    minOrderValue: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    maxDiscountValue: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     description: {
       type: String,
       default: "",
@@ -35,7 +46,7 @@ const couponSchema = new Schema(
     },
     isActive: {
       type: Boolean,
-      default: true,
+      default: isActive,
     },
     maxUsesPerUser: {
       type: Number,
@@ -50,13 +61,12 @@ const couponSchema = new Schema(
       type: Number,
       default: 0,
     },
-    allowedUsers: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        default: [],
-      },
-    ],
+    allowedUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     vendors: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Vendor",
@@ -68,50 +78,8 @@ const couponSchema = new Schema(
   }
 );
 
-couponSchema.index({ code: 1 });
 couponSchema.index({ vendors: 1 });
-couponSchema.index({ allowedUsers: 1 });
-
-// method to check if the coupon is valid.
-couponSchema.methods.isValidForUser = async function (userId, vendorId) {
-  const now = new Date();
-  const usedCountByUser = await Order.countDocuments({
-    coupon: this._id,
-    user: userId,
-  });
-  if (!this.isActive) {
-    throw new Error("Coupon is not active");
-  }
-  if (this.startDate && now < this.startDate) {
-    throw new Error("Coupon is not valid, start date is not yet reached");
-  }
-  if (this.endDate && now > this.endDate) {
-    throw new Error("Coupon is not valid, end date is already passed");
-  }
-  if (this.maxUses && this.usedCount >= this.maxUses) {
-    throw new Error("Coupon is not valid, max uses is already reached");
-  }
-  if (
-    this.allowedUsers?.length &&
-    !this.allowedUsers.some((u) => u.toString() === userId.toString())
-  ) {
-    throw new Error(
-      "Coupon is not valid, user is not allowed to use this coupon"
-    );
-  }
-  if (this.maxUsesPerUser && usedCountByUser >= this.maxUsesPerUser) {
-    throw new Error("Coupon is not valid, user has already used this coupon");
-  }
-  if (
-    this.vendors?.length &&
-    !this.vendors.some((v) => v.toString() === vendorId.toString())
-  ) {
-    throw new Error(
-      "Coupon is not valid, vendor is not allowed to use this coupon"
-    );
-  }
-  return true;
-};
+couponSchema.index({ allowedUser: 1 });
 
 const Coupon = mongoose.model("Coupon", couponSchema);
 module.exports = Coupon;

@@ -9,6 +9,7 @@
  *         - description
  *         - basePrice
  *         - category
+ *         - vendor
  *       properties:
  *         _id:
  *           type: string
@@ -27,9 +28,10 @@
  *           description: Base price of the item
  *           example: 25.99
  *         prepTime:
- *           type: number
- *           description: Preparation time in minutes
- *           example: 15
+ *           type: string
+ *           nullable: true
+ *           description: Preparation time (e.g., "15 minutes", "30-45 min")
+ *           example: "15 minutes"
  *         discount:
  *           type: object
  *           nullable: true
@@ -76,6 +78,15 @@
  *           type: string
  *           description: Category ID the item belongs to
  *           example: "507f1f77bcf86cd799439012"
+ *         vendor:
+ *           type: string
+ *           description: Vendor ID the item belongs to
+ *           example: "507f1f77bcf86cd799439013"
+ *         imagePath:
+ *           type: string
+ *           nullable: true
+ *           description: Path to the item image
+ *           example: "/uploads/items/image.jpg"
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -104,9 +115,10 @@
  *           description: Base price of the item
  *           example: 25.99
  *         prepTime:
- *           type: number
- *           description: Preparation time in minutes
- *           example: 15
+ *           type: string
+ *           nullable: true
+ *           description: Preparation time (e.g., "15 minutes", "30-45 min")
+ *           example: "15 minutes"
  *     UpdateItemRequest:
  *       type: object
  *       properties:
@@ -123,9 +135,10 @@
  *           description: Updated base price of the item
  *           example: 29.99
  *         prepTime:
- *           type: number
- *           description: Updated preparation time in minutes
- *           example: 20
+ *           type: string
+ *           nullable: true
+ *           description: Updated preparation time (e.g., "15 minutes", "30-45 min")
+ *           example: "20 minutes"
  *     UpdateStatusRequest:
  *       type: object
  *       required:
@@ -240,7 +253,7 @@
  *                 name: "Delicious Pizza"
  *                 description: "Fresh pizza with premium ingredients"
  *                 basePrice: 25.99
- *                 prepTime: 15
+ *                 prepTime: "15 minutes"
  *     responses:
  *       201:
  *         description: Item created successfully
@@ -272,7 +285,139 @@
 
 /**
  * @swagger
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items:
+ *   get:
+ *     summary: Get all items in a category
+ *     description: Retrieve all items in a specific category (Vendor only)
+ *     tags: ["Items - Vendor"]
+ *     parameters:
+ *       - name: Authorization
+ *         in: header
+ *         required: true
+ *         description: JWT access token
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: vendorId
+ *         in: path
+ *         required: true
+ *         description: Vendor ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439010"
+ *       - name: menuCategoryId
+ *         in: path
+ *         required: true
+ *         description: Category ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439012"
+ *     responses:
+ *       200:
+ *         description: Items retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         items:
+ *                           type: array
+ *                           items:
+ *                             $ref: '#/components/schemas/Item'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Vendor or category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
  * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/{itemId}:
+ *   get:
+ *     summary: Get a single item by ID
+ *     description: Retrieve a specific item by its ID (Vendor only)
+ *     tags: ["Items - Vendor"]
+ *     parameters:
+ *       - name: Authorization
+ *         in: header
+ *         required: true
+ *         description: JWT access token
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: vendorId
+ *         in: path
+ *         required: true
+ *         description: Vendor ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439010"
+ *       - name: menuCategoryId
+ *         in: path
+ *         required: true
+ *         description: Category ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439012"
+ *       - name: itemId
+ *         in: path
+ *         required: true
+ *         description: Item ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439011"
+ *     responses:
+ *       200:
+ *         description: Item retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         item:
+ *                           $ref: '#/components/schemas/Item'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Item not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *   put:
  *     summary: Update an item
  *     description: Update an existing item (Vendor only)
@@ -319,7 +464,7 @@
  *                 name: "Updated Pizza Name"
  *                 description: "Updated description"
  *                 basePrice: 29.99
- *                 prepTime: 20
+ *                 prepTime: "20 minutes"
  *     responses:
  *       200:
  *         description: Item updated successfully

@@ -17,20 +17,31 @@
  *           type: string
  *           description: Vendor description
  *           example: "Best pizza in town"
- *         address:
+ *         category:
  *           type: string
- *           description: Vendor address
- *           example: "123 Main St, Cairo"
- *         phone:
- *           type: string
- *           description: Vendor phone number
- *           example: "+201234567890"
+ *           description: Vendor category ID
+ *           example: "507f1f77bcf86cd799439013"
+ *         workingHours:
+ *           type: object
+ *           properties:
+ *             open:
+ *               type: string
+ *               example: "09:00"
+ *             close:
+ *               type: string
+ *               example: "21:00"
+ *             days:
+ *               type: array
+ *               items:
+ *                 type: string
+ *               example: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
  *         owner:
  *           type: string
  *           description: Owner user ID
  *           example: "507f1f77bcf86cd799439012"
  *         logoPath:
  *           type: string
+ *           nullable: true
  *           description: Path to vendor logo
  *           example: "/uploads/vendorsLogos/507f1f77bcf86cd799439011.jpg"
  *         isActive:
@@ -59,18 +70,39 @@
 /**
  * @swagger
  * /api/v1/vendor/vendors:
+ *   get:
+ *     summary: Get my vendors
+ *     description: Retrieve all vendors owned by the authenticated user
+ *     tags: ["Vendors - Vendor"]
+ *     responses:
+ *       200:
+ *         description: Vendors retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "vendors fetched successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     vendors:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Vendor'
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Internal server error
  *   post:
  *     summary: Create a new vendor
  *     description: Create a vendor profile (Vendor only)
  *     tags: ["Vendors - Vendor"]
- *     parameters:
- *       - name: Authorization
- *         in: header
- *         required: true
- *         description: JWT access token
- *         schema:
- *           type: string
- *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *     requestBody:
  *       required: true
  *       content:
@@ -79,15 +111,31 @@
  *             type: object
  *             required:
  *               - name
+ *               - description
+ *               - categoryId
  *             properties:
  *               name:
  *                 type: string
+ *                 example: "Pizza Palace"
  *               description:
  *                 type: string
- *               address:
+ *                 example: "Best pizza in town"
+ *               categoryId:
  *                 type: string
- *               phone:
+ *                 example: "507f1f77bcf86cd799439013"
+ *               openHour:
  *                 type: string
+ *                 example: "09:00"
+ *                 default: "09:00"
+ *               closeHour:
+ *                 type: string
+ *                 example: "21:00"
+ *                 default: "21:00"
+ *               days:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
  *     responses:
  *       201:
  *         description: Vendor created successfully
@@ -121,13 +169,6 @@
  *     description: Update vendor profile (Owner only)
  *     tags: ["Vendors - Vendor"]
  *     parameters:
- *       - name: Authorization
- *         in: header
- *         required: true
- *         description: JWT access token
- *         schema:
- *           type: string
- *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       - name: vendorId
  *         in: path
  *         required: true
@@ -141,15 +182,31 @@
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - description
+ *               - categoryId
  *             properties:
  *               name:
  *                 type: string
+ *                 example: "Pizza Palace Updated"
  *               description:
  *                 type: string
- *               address:
+ *                 example: "Still the best pizza in town"
+ *               categoryId:
  *                 type: string
- *               phone:
+ *                 example: "507f1f77bcf86cd799439013"
+ *               openHour:
  *                 type: string
+ *                 example: "10:00"
+ *               closeHour:
+ *                 type: string
+ *                 example: "22:00"
+ *               days:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
  *     responses:
  *       200:
  *         description: Vendor updated successfully
@@ -175,22 +232,11 @@
  *         description: Vendor not found
  *       500:
  *         description: Internal server error
- */
-
-/**
- * @swagger
- * /api/v1/vendor/vendors/{vendorId}:
  *   delete:
  *     summary: Delete vendor
  *     description: Delete vendor profile (Owner only)
  *     tags: ["Vendors - Vendor"]
  *     parameters:
- *       - name: Authorization
- *         in: header
- *         required: true
- *         description: JWT access token
- *         schema:
- *           type: string
  *       - name: vendorId
  *         in: path
  *         required: true
@@ -225,15 +271,9 @@
  * /api/v1/vendor/vendors/{vendorId}/logo:
  *   post:
  *     summary: Upload vendor logo
- *     description: Upload logo image for vendor (Owner only)
+ *     description: Upload logo for vendor (Owner only)
  *     tags: ["Vendors - Vendor"]
  *     parameters:
- *       - name: Authorization
- *         in: header
- *         required: true
- *         description: JWT access token
- *         schema:
- *           type: string
  *       - name: vendorId
  *         in: path
  *         required: true
@@ -247,11 +287,12 @@
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required:
+ *               - image
  *             properties:
  *               image:
  *                 type: string
  *                 format: binary
- *                 description: Logo image file (JPG, PNG, WEBP)
  *     responses:
  *       200:
  *         description: Logo uploaded successfully
@@ -265,36 +306,23 @@
  *                   example: "success"
  *                 message:
  *                   type: string
- *                   example: "Vendor logo uploaded successfully"
+ *                   example: "Logo uploaded successfully"
  *                 data:
  *                   type: object
  *                   properties:
  *                     vendor:
  *                       $ref: '#/components/schemas/Vendor'
- *       400:
- *         description: Bad request - Invalid file format
  *       401:
  *         description: Unauthorized
  *       404:
  *         description: Vendor not found
  *       500:
  *         description: Internal server error
- */
-
-/**
- * @swagger
- * /api/v1/vendor/vendors/{vendorId}/activate:
- *   patch:
- *     summary: Activate vendor
- *     description: Activate vendor profile (Owner only)
+ *   get:
+ *     summary: Get vendor logo
+ *     description: Retrieve vendor logo image
  *     tags: ["Vendors - Vendor"]
  *     parameters:
- *       - name: Authorization
- *         in: header
- *         required: true
- *         description: JWT access token
- *         schema:
- *           type: string
  *       - name: vendorId
  *         in: path
  *         required: true
@@ -304,27 +332,18 @@
  *           example: "507f1f77bcf86cd799439011"
  *     responses:
  *       200:
- *         description: Vendor activated successfully
+ *         description: Logo retrieved successfully
  *         content:
- *           application/json:
+ *           image/jpeg:
  *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: "success"
- *                 message:
- *                   type: string
- *                   example: "Vendor activated successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     vendor:
- *                       $ref: '#/components/schemas/Vendor'
- *       401:
- *         description: Unauthorized
+ *               type: string
+ *               format: binary
+ *           image/png:
+ *             schema:
+ *               type: string
+ *               format: binary
  *       404:
- *         description: Vendor not found
+ *         description: Logo not found
  *       500:
  *         description: Internal server error
  */
@@ -334,22 +353,15 @@
  * /api/v1/vendor/vendors/{vendorId}/active:
  *   patch:
  *     summary: Update vendor active status
- *     description: Update the active status of vendor profile (Owner only)
+ *     description: Activate or deactivate vendor (Owner only)
  *     tags: ["Vendors - Vendor"]
  *     parameters:
- *       - name: Authorization
- *         in: header
- *         required: true
- *         description: JWT access token
- *         schema:
- *           type: string
  *       - name: vendorId
  *         in: path
  *         required: true
- *         description: Vendor ID
  *         schema:
  *           type: string
- *           example: "507f1f77bcf86cd799439011"
+ *         description: Vendor ID
  *     requestBody:
  *       required: true
  *       content:
@@ -361,7 +373,6 @@
  *             properties:
  *               isActive:
  *                 type: boolean
- *                 description: Vendor active status
  *                 example: true
  *     responses:
  *       200:
@@ -387,7 +398,9 @@
  *       404:
  *         description: Vendor not found
  *       409:
- *         description: Conflict - Vendor active status is already set to this value
+ *         description: Vendor active status is already set to this value
  *       500:
  *         description: Internal server error
  */
+
+module.exports = {};
