@@ -295,19 +295,29 @@
  *         description: Unauthorized
  *       404:
  *         description: Address or items not found
- *   get:
+ */
+
+/**
+ * @swagger
+ * /api/v1/orders/list:
+ *   post:
  *     summary: Get all orders
- *     description: Retrieve all orders for the authenticated user, sorted by creation date (newest first). Optionally filter by status
+ *     description: Retrieve all orders for the authenticated user, sorted by creation date (newest first). Optionally filter by statuses array
  *     tags: ["Orders - User"]
- *     parameters:
- *       - name: status
- *         in: query
- *         required: false
- *         description: Filter orders by status
- *         schema:
- *           type: string
- *           enum: [pending, preparing, out_for_delivery, delivered, cancelled]
- *           example: "pending"
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               statuses:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [pending, preparing, out_for_delivery, delivered, cancelled]
+ *                 description: Array of statuses to filter orders. If empty or not provided, returns all orders
+ *                 example: ["pending", "preparing"]
  *     responses:
  *       200:
  *         description: Orders retrieved successfully
