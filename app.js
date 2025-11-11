@@ -13,6 +13,7 @@ const swaggerDocs = require("./swagger");
 const { checkApiKey } = require("./middlewares/apiKeyAuth");
 
 const app = express();
+app.enable("trust proxy");
 
 app.use(cors());
 app.use(helmet());
