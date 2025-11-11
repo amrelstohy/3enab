@@ -28,9 +28,11 @@ const createOrder = async (req, res) => {
   });
 };
 
-// GET /
+// POST /list
 const getOrders = async (req, res) => {
-  const orders = await orderService.getOrders(req.user, req.query.status);
+  // Get statuses from request body (array of statuses)
+  const statuses = req.body.statuses || [];
+  const orders = await orderService.getOrders(req.user, statuses);
   res.status(200).json({
     status: "success",
     message: "Orders fetched successfully",
@@ -103,7 +105,12 @@ const getVendorOrder = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   const io = getIO(req);
   const { status } = req.body;
-  const order = await orderService.updateOrderStatus(req.order, status, io);
+  const order = await orderService.updateOrderStatus(
+    req.user,
+    req.order,
+    status,
+    io
+  );
   res.status(200).json({
     status: "success",
     message: "Order status updated successfully",

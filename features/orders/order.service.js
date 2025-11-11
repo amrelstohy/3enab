@@ -89,10 +89,10 @@ const createOrder = async (
 };
 
 // Get orders for a user
-const getOrders = async (user, status = "") => {
+const getOrders = async (user, statuses = []) => {
   const filter = { user: user._id };
-  if (status && status.trim() !== "") {
-    filter.status = status;
+  if (statuses.length > 0) {
+    filter.status = { $in: statuses };
   }
   const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
   return sanitizeOrders(orders);
@@ -155,7 +155,9 @@ const cancelOrder = async (order, io = null) => {
 // Get orders for a vendor or all vendors owned by user
 const getVendorOrders = async (user, status = null, vendorId = null) => {
   const filter = {};
+
   if (vendorId) {
+    // Filter by specific vendor
     const vendor = await Vendor.findById(vendorId).lean();
     if (!vendor) {
       throw new NotFoundError("Vendor not found");
@@ -166,8 +168,22 @@ const getVendorOrders = async (user, status = null, vendorId = null) => {
       );
     }
     filter.vendor = vendorId;
+  } else {
+    // Get all vendors owned by this user
+    const vendors = await Vendor.find({ owner: user._id }).select("_id").lean();
+    const vendorIds = vendors.map((v) => v._id);
+
+    if (vendorIds.length === 0) {
+      return [];
+    }
+
+    filter.vendor = { $in: vendorIds };
   }
-  if (status) filter.status = status;
+
+  if (status) {
+    filter.status = status;
+  }
+
   const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
   return sanitizeOrders(orders);
 };
