@@ -7,7 +7,7 @@ const checkOwnerShip = require("../../../middlewares/checkOwnerShip");
 
 router.post("/preview", orderController.previewOrder);
 router.post("/", orderController.createOrder);
-router.post("/list", orderController.getOrders);
+router.get("/", orderController.getOrders);
 router.get(
   "/:orderId",
   isResourceExists(Order, "orderId"),

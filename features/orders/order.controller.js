@@ -28,10 +28,17 @@ const createOrder = async (req, res) => {
   });
 };
 
-// POST /list
+// GET /
 const getOrders = async (req, res) => {
-  // Get statuses from request body (array of statuses)
-  const statuses = req.body.statuses || [];
+  // Get status from query - can be single value or array (e.g., ?status=pending&status=shipped)
+  let statuses = [];
+  if (req.query.status) {
+    if (Array.isArray(req.query.status)) {
+      statuses = req.query.status;
+    } else {
+      statuses = [req.query.status];
+    }
+  }
   const orders = await orderService.getOrders(req.user, statuses);
   res.status(200).json({
     status: "success",
