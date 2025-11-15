@@ -3,7 +3,7 @@ const router = express.Router();
 const orderController = require("../order.controller");
 const isResourceExists = require("../../../middlewares/isResourceExists");
 const checkOwnerShip = require("../../../middlewares/checkOwnerShip");
-const Order = require("../order.model");
+const { Order } = require("../order.model");
 
 router.get("/", orderController.getVendorOrders);
 router.get(
@@ -15,7 +15,6 @@ router.get(
 router.patch(
   "/:orderId/status",
   isResourceExists(Order, "orderId"),
-  checkOwnerShip(Order, "vendor"),
   orderController.updateOrderStatus
 );
 

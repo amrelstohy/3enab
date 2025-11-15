@@ -1,4 +1,4 @@
-const Order = require("./order.model");
+const { Order, orderStatus } = require("./order.model");
 const Address = require("../addresses/address.model");
 const Vendor = require("../vendors/vendor.model");
 const Coupon = require("../coupons/coupon.model");
@@ -17,22 +17,34 @@ const {
 } = require("../../utils/socketService");
 
 // Preview order pricing without persisting
-const previewOrder = async (user, { cartItems, addressId, couponCode }) => {
+const previewOrder = async (
+  user,
+  { cartItems, addressId, couponCode, isPickup = false }
+) => {
   if (!Array.isArray(cartItems) || cartItems.length === 0) {
     throw new BadRequestError("Cart items are required");
   }
 
-  const address = await Address.findById(addressId).lean();
-  if (!address) throw new NotFoundError("Address not found");
-  if (address.user.toString() !== user._id.toString()) {
-    throw new UnauthorizedError("You are not allowed to use this address");
+  let deliveryAreaId = null;
+
+  if (!isPickup) {
+    if (!addressId) {
+      throw new BadRequestError("Address is required for delivery orders");
+    }
+    const address = await Address.findById(addressId).lean();
+    if (!address) throw new NotFoundError("Address not found");
+    if (address.user.toString() !== user._id.toString()) {
+      throw new UnauthorizedError("You are not allowed to use this address");
+    }
+    deliveryAreaId = address?.deliveryArea?.toString() || null;
   }
 
   const pricing = await totalPriceCalc(
     cartItems,
     user._id.toString(),
-    address.deliveryArea.toString(),
-    couponCode || null
+    deliveryAreaId,
+    couponCode || null,
+    isPickup
   );
 
   return pricing; // { items, subtotal, discount, deliveryFee, total, vendor, coupon }
@@ -41,13 +53,21 @@ const previewOrder = async (user, { cartItems, addressId, couponCode }) => {
 // Create order using preview computation
 const createOrder = async (
   user,
-  { cartItems, addressId, couponCode, paymentMethod = "cash", notes = "" },
+  {
+    cartItems,
+    addressId,
+    couponCode,
+    paymentMethod = "cash",
+    notes = "",
+    isPickup = false,
+  },
   io = null
 ) => {
   const pricing = await previewOrder(user, {
     cartItems,
     addressId,
     couponCode,
+    isPickup,
   });
 
   const orderData = {
@@ -62,6 +82,7 @@ const createOrder = async (
     status: "pending",
     address: addressId,
     paymentMethod,
+    isPickup,
     notes,
   };
 
@@ -78,6 +99,7 @@ const createOrder = async (
   }
 
   const order = await Order.create(orderData);
+  order.populate("items.item", "name imagePath");
   const sanitizedOrder = sanitizeOrder(order);
 
   // Notify vendor about new order
@@ -94,45 +116,17 @@ const getOrders = async (user, statuses = []) => {
   if (statuses.length > 0) {
     filter.status = { $in: statuses };
   }
-  const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
+  const orders = await Order.find(filter)
+    .populate("items.item", "name imagePath")
+    .sort({ createdAt: -1 })
+    .lean();
   return sanitizeOrders(orders);
 };
 
 // Get single order (order provided by middleware)
 const getOrder = async (order) => {
+  order.populate("items.item", "name imagePath");
   return sanitizeOrder(order);
-};
-
-// Update order (allow user to update notes or cancel when allowed)
-const updateOrder = async (user, order, updateData, io = null) => {
-  if (order.user.toString() !== user._id.toString()) {
-    throw new UnauthorizedError("You are not allowed to update this order");
-  }
-
-  const { notes, status } = updateData;
-
-  if (notes !== undefined) order.notes = notes;
-
-  if (status) {
-    // user can only request cancel, and only when current status is pending
-    if (status !== "cancelled") {
-      throw new BadRequestError("Invalid status update by user");
-    }
-    if (order.status !== "pending") {
-      throw new BadRequestError("Only pending orders can be cancelled");
-    }
-    order.status = "cancelled";
-  }
-
-  await order.save();
-  const sanitizedOrder = sanitizeOrder(order);
-
-  // Notify vendor if order was cancelled
-  if (status === "cancelled" && io) {
-    notifyOrderCancelled(io, order.vendor.toString(), sanitizedOrder);
-  }
-
-  return sanitizedOrder;
 };
 
 // Cancel order (instead of physical delete)
@@ -142,6 +136,7 @@ const cancelOrder = async (order, io = null) => {
   }
   order.status = "cancelled";
   await order.save();
+  order.populate("items.item", "name imagePath");
   const sanitizedOrder = sanitizeOrder(order);
 
   // Notify vendor about cancellation
@@ -153,7 +148,7 @@ const cancelOrder = async (order, io = null) => {
 };
 
 // Get orders for a vendor or all vendors owned by user
-const getVendorOrders = async (user, status = null, vendorId = null) => {
+const getVendorOrders = async (user, statuses = [], vendorId = null) => {
   const filter = {};
 
   if (vendorId) {
@@ -180,16 +175,20 @@ const getVendorOrders = async (user, status = null, vendorId = null) => {
     filter.vendor = { $in: vendorIds };
   }
 
-  if (status) {
-    filter.status = status;
+  if (statuses.length > 0) {
+    filter.status = { $in: statuses };
   }
 
-  const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
+  const orders = await Order.find(filter)
+    .populate("items.item", "name imagePath")
+    .sort({ createdAt: -1 })
+    .lean();
   return sanitizeOrders(orders);
 };
 
 // Get single order for vendor (order provided by middleware)
 const getVendorOrder = async (order) => {
+  order.populate("items.item", "name imagePath");
   return sanitizeOrder(order);
 };
 
@@ -205,15 +204,7 @@ const updateOrderStatus = async (user, order, status, io = null) => {
     throw new UnauthorizedError("You are not allowed to update this order");
   }
 
-  const validStatuses = [
-    "pending",
-    "preparing",
-    "out_for_delivery",
-    "delivered",
-    "cancelled",
-  ];
-
-  if (!validStatuses.includes(status)) {
+  if (!orderStatus.includes(status)) {
     throw new BadRequestError("Invalid status");
   }
 
@@ -229,6 +220,7 @@ const updateOrderStatus = async (user, order, status, io = null) => {
   const previousStatus = order.status;
   order.status = status;
   await order.save();
+  order.populate("items.item", "name imagePath");
   const sanitizedOrder = sanitizeOrder(order);
 
   // Notify user about status update
@@ -249,7 +241,6 @@ module.exports = {
   createOrder,
   getOrders,
   getOrder,
-  updateOrder,
   cancelOrder,
   getVendorOrders,
   getVendorOrder,

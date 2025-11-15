@@ -1,6 +1,15 @@
 const mongoose = require("mongoose");
 const Counter = require("../counters/counter.model");
 
+const orderStatus = [
+  "pending",
+  "received_by_restaurant",
+  "preparing",
+  "out_for_delivery",
+  "delivered",
+  "cancelled",
+];
+
 const orderItemSchema = new mongoose.Schema(
   {
     item: {
@@ -45,6 +54,11 @@ const orderSchema = new mongoose.Schema(
       ref: "Vendor",
       required: true,
     },
+    assignedDriver: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     items: {
       type: [orderItemSchema],
       validate: [(val) => val.length > 0, "Order must have at least one item."],
@@ -76,24 +90,22 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: [
-        "pending",
-        "preparing",
-        "out_for_delivery",
-        "delivered",
-        "cancelled",
-      ],
+      enum: orderStatus,
       default: "pending",
     },
     address: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Address",
-      required: true,
+      default: null,
     },
     paymentMethod: {
       type: String,
       enum: ["cash", "credit_card", "wallet"],
       default: "cash",
+    },
+    isPickup: {
+      type: Boolean,
+      default: false,
     },
     notes: {
       type: String,
@@ -120,4 +132,4 @@ orderSchema.pre("validate", async function (next) {
 });
 
 const Order = mongoose.model("Order", orderSchema);
-module.exports = Order;
+module.exports = { Order, orderStatus };

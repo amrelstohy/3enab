@@ -16,8 +16,9 @@ const DeliveryArea = require("../features/deliveryArea/deliveryArea.model");
 const totalPriceCalc = async (
   cartItems,
   userId,
-  deliveryAreaId,
-  couponCode = null
+  deliveryAreaId = null,
+  couponCode = null,
+  isPickup = false
 ) => {
   const result = {
     items: [],
@@ -69,11 +70,15 @@ const totalPriceCalc = async (
   result.subtotal = subtotal;
 
   // Calculate delivery fee
-  const deliveryArea = await DeliveryArea.findById(deliveryAreaId);
-  if (!deliveryArea) {
-    throw new NotFoundError("Delivery area not found");
+  if (isPickup) {
+    result.deliveryFee = 0;
+  } else {
+    const deliveryArea = await DeliveryArea.findById(deliveryAreaId);
+    if (!deliveryArea) {
+      throw new NotFoundError("Delivery area not found");
+    }
+    result.deliveryFee = deliveryArea.deliveryFee;
   }
-  result.deliveryFee = deliveryArea.deliveryFee;
 
   // Validate coupon if provided
   if (couponCode) {
