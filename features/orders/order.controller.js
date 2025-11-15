@@ -57,22 +57,6 @@ const getOrder = async (req, res) => {
   });
 };
 
-// PUT /:orderId
-const updateOrder = async (req, res) => {
-  const io = getIO(req);
-  const order = await orderService.updateOrder(
-    req.user,
-    req.order,
-    req.body,
-    io
-  );
-  res.status(200).json({
-    status: "success",
-    message: "Order updated successfully",
-    data: { order },
-  });
-};
-
 // DELETE /:orderId (soft cancel)
 const deleteOrder = async (req, res) => {
   const io = getIO(req);
@@ -86,9 +70,18 @@ const deleteOrder = async (req, res) => {
 
 // GET / (vendor) - Get all orders for vendor's restaurants
 const getVendorOrders = async (req, res) => {
+  // Get status from query - can be single value or array (e.g., ?status=pending&status=preparing)
+  let statuses = [];
+  if (req.query.status) {
+    if (Array.isArray(req.query.status)) {
+      statuses = req.query.status;
+    } else {
+      statuses = [req.query.status];
+    }
+  }
   const orders = await orderService.getVendorOrders(
     req.user,
-    req.query.status,
+    statuses,
     req.query.vendorId
   );
   res.status(200).json({
@@ -130,7 +123,6 @@ module.exports = {
   createOrder,
   getOrders,
   getOrder,
-  updateOrder,
   deleteOrder,
   getVendorOrders,
   getVendorOrder,

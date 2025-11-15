@@ -1,5 +1,5 @@
 const Coupon = require("../features/coupons/coupon.model");
-const Order = require("../features/orders/order.model");
+const { Order } = require("../features/orders/order.model");
 
 /**
  * Validate a coupon against user, vendor, and global constraints.

@@ -11,9 +11,11 @@ const sanitizeOrder = (order) => {
   if (!order) return null;
   return {
     _id: order._id,
+    orderNumber: order.orderNumber,
     user: order.user,
     vendor: order.vendor,
-    items: Array.isArray(order.items) ? order.items.map(sanitizeOrderItem) : [],
+    assignedDriver: order.assignedDriver,
+    items: order.items,
     subtotal: order.subtotal,
     discount: order.discount,
     deliveryFee: order.deliveryFee,
@@ -22,6 +24,7 @@ const sanitizeOrder = (order) => {
     status: order.status,
     address: order.address,
     paymentMethod: order.paymentMethod,
+    isPickup: order.isPickup || false,
     notes: order.notes || null,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,

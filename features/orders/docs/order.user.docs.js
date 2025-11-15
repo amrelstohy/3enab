@@ -6,9 +6,21 @@
  *       type: object
  *       properties:
  *         item:
- *           type: string
- *           description: Item ID
- *           example: "64f1a2b3c4d5e6f7890a1234"
+ *           type: object
+ *           description: Item details (populated)
+ *           properties:
+ *             _id:
+ *               type: string
+ *               description: Item ID
+ *               example: "64f1a2b3c4d5e6f7890a1234"
+ *             name:
+ *               type: string
+ *               description: Item name
+ *               example: "Margherita Pizza"
+ *             imagePath:
+ *               type: string
+ *               description: Item image path
+ *               example: "uploads/items/pizza.jpg"
  *         quantity:
  *           type: number
  *           description: Item quantity
@@ -40,6 +52,11 @@
  *           type: string
  *           description: Vendor ID
  *           example: "64f1a2b3c4d5e6f7890a9999"
+ *         assignedDriver:
+ *           type: string
+ *           nullable: true
+ *           description: Assigned driver ID (if any)
+ *           example: "64f1a2b3c4d5e6f7890a6666"
  *         items:
  *           type: array
  *           items:
@@ -68,7 +85,7 @@
  *           example: "64f1a2b3c4d5e6f7890a8888"
  *         status:
  *           type: string
- *           enum: [pending, preparing, out_for_delivery, delivered, cancelled]
+ *           enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled]
  *           description: Order status
  *           example: "pending"
  *         address:
@@ -80,6 +97,10 @@
  *           enum: [cash, credit_card, wallet]
  *           description: Payment method
  *           example: "cash"
+ *         isPickup:
+ *           type: boolean
+ *           description: Whether the order is for pickup or delivery
+ *           example: false
  *         notes:
  *           type: string
  *           nullable: true
@@ -161,7 +182,6 @@
  *             type: object
  *             required:
  *               - cartItems
- *               - addressId
  *             properties:
  *               cartItems:
  *                 type: array
@@ -183,13 +203,18 @@
  *                 description: Array of cart items
  *               addressId:
  *                 type: string
- *                 description: Delivery address ID
+ *                 description: Delivery address ID (required if isPickup is false)
  *                 example: "64f1a2b3c4d5e6f7890a7777"
  *               couponCode:
  *                 type: string
  *                 nullable: true
  *                 description: Optional coupon code
  *                 example: "SUMMER2024"
+ *               isPickup:
+ *                 type: boolean
+ *                 default: false
+ *                 description: Whether the order is for pickup (true) or delivery (false)
+ *                 example: false
  *     responses:
  *       200:
  *         description: Order preview calculated successfully
@@ -228,7 +253,7 @@
  *         description: Filter orders by status. Can specify multiple times (e.g., ?status=pending&status=preparing) or single value (e.g., ?status=pending)
  *         schema:
  *           type: string
- *           enum: [pending, preparing, out_for_delivery, delivered, cancelled]
+ *           enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled]
  *         example: "pending"
  *         allowReserved: true
  *     responses:
@@ -266,7 +291,6 @@
  *             type: object
  *             required:
  *               - cartItems
- *               - addressId
  *             properties:
  *               cartItems:
  *                 type: array
@@ -288,7 +312,7 @@
  *                 description: Array of cart items
  *               addressId:
  *                 type: string
- *                 description: Delivery address ID
+ *                 description: Delivery address ID (required if isPickup is false)
  *                 example: "64f1a2b3c4d5e6f7890a7777"
  *               couponCode:
  *                 type: string
@@ -301,6 +325,11 @@
  *                 default: cash
  *                 description: Payment method
  *                 example: "cash"
+ *               isPickup:
+ *                 type: boolean
+ *                 default: false
+ *                 description: Whether the order is for pickup (true) or delivery (false)
+ *                 example: false
  *               notes:
  *                 type: string
  *                 maxLength: 500
