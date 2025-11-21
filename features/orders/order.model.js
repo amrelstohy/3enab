@@ -3,11 +3,13 @@ const Counter = require("../counters/counter.model");
 
 const orderStatus = [
   "pending",
-  "received_by_restaurant",
   "preparing",
   "out_for_delivery",
   "delivered",
+  "completed",
+  "received_by_customer",
   "cancelled",
+  "canceled_by_vendor",
 ];
 
 const orderItemSchema = new mongoose.Schema(

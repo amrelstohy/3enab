@@ -11,6 +11,7 @@ const adminRoutes = require("./features/admin.index");
 const { errorHandler } = require("./middlewares/errorHandler.middleware");
 const swaggerDocs = require("./swagger");
 const { checkApiKey } = require("./middlewares/apiKeyAuth");
+const deliveryRoutes = require("./features/delivery.index");
 
 const app = express();
 app.enable("trust proxy");
@@ -35,6 +36,7 @@ app.use((req, res, next) => {
 // Route separation by application type
 app.use("/api/v1/admin", checkApiKey("admin"), adminRoutes); // Admin App
 app.use("/api/v1/vendor", checkApiKey("vendor"), vendorRoutes); // Vendor App
+app.use("/api/v1/delivery", checkApiKey("delivery"), deliveryRoutes); // Delivery App
 app.use("/api/v1", checkApiKey("user"), userRoutes); // User App (Main)
 
 swaggerDocs(app);

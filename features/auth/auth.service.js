@@ -25,7 +25,10 @@ const {
 } = require("../../utils/verifyOTP");
 
 // Register service
-const register = async ({ email, password, name, phone }, appType) => {
+const register = async (
+  { email, password, name, phone, isDeliveryCoordinator },
+  appType
+) => {
   const phoneExists = await User.findOne({ phone });
 
   if (phoneExists) {
@@ -55,6 +58,12 @@ const register = async ({ email, password, name, phone }, appType) => {
     phoneVerificationOTPExpires: new Date(Date.now() + 10 * 60 * 1000),
     type: appType,
   });
+  if (isDeliveryCoordinator && appType === "delivery") {
+    user.isDeliveryCoordinator = true;
+  }
+  if (appType === "delivery") {
+    user.deliveryStatus = "online";
+  }
 
   const refreshToken = generateRefreshToken(user._id);
   const accessToken = generateAccessToken(user._id);

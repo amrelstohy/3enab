@@ -17,5 +17,10 @@ router.patch(
   isResourceExists(Order, "orderId"),
   orderController.updateOrderStatus
 );
+router.delete(
+  "/:orderId",
+  isResourceExists(Order, "orderId"),
+  orderController.cancelOrderByVendor
+);
 
 module.exports = router;

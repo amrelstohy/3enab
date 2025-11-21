@@ -103,16 +103,51 @@ const notifyNewOrder = (io, vendorId, order) => {
 };
 
 /**
- * Emit order status update to user
+ * Emit order status update to user, vendor, and delivery
  * @param {Object} io - Socket.IO instance
  * @param {String} userId - User ID
  * @param {Object} order - Order data
+ * @param {Object} deliveryOrder - Order data with full populate for delivery (optional)
  */
-const notifyOrderStatusUpdate = (io, userId, order) => {
+const notifyOrderStatusUpdate = (io, userId, order, deliveryOrder = null) => {
+  // Always notify the customer
   emitToUser(io, userId, "order:status-updated", {
     message: "Order status updated",
     order,
   });
+
+  // Always notify the vendor about all status changes
+  if (order.vendor) {
+    emitToVendor(io, order.vendor.toString(), "order:status-updated", {
+      message: "Order status updated",
+      order,
+    });
+  }
+
+  // Notify delivery users for statuses from 'preparing' onwards (only if not pickup order)
+  if (!order.isPickup) {
+    const deliveryStatuses = ["preparing", "out_for_delivery", "delivered"];
+
+    if (deliveryStatuses.includes(order.status)) {
+      // Use deliveryOrder if provided, otherwise use regular order
+      const orderForDelivery = deliveryOrder || order;
+
+      // If status is preparing, this is a new order available for delivery
+      const eventName =
+        order.status === "preparing"
+          ? "order:new-delivery"
+          : "order:status-updated";
+      const message =
+        order.status === "preparing"
+          ? "New order available for delivery"
+          : `Order status updated to ${order.status}`;
+
+      emitToDelivery(io, eventName, {
+        message,
+        order: orderForDelivery,
+      });
+    }
+  }
 };
 
 /**
@@ -121,23 +156,84 @@ const notifyOrderStatusUpdate = (io, userId, order) => {
  * @param {Object} order - Order data
  */
 const notifyOrderAccepted = (io, order) => {
-  emitToDelivery(io, "order:accepted", {
-    message: "New order available for delivery",
+  // Only notify delivery if it's not a pickup order
+  if (!order.isPickup) {
+    emitToDelivery(io, "order:accepted", {
+      message: "New order available for delivery",
+      order,
+    });
+  }
+};
+
+/**
+ * Emit order cancelled notification
+ * @param {Object} io - Socket.IO instance
+ * @param {String} targetId - User or Vendor ID (who receives the notification)
+ * @param {Object} order - Order data
+ */
+const notifyOrderCancelled = (io, targetId, order) => {
+  // Notify the target (user or vendor who receives cancellation)
+  emitToUser(io, targetId, "order:cancelled", {
+    message: "Order cancelled",
+    order,
+  });
+
+  // Also notify vendor about cancellation
+  if (order.vendor && targetId !== order.vendor.toString()) {
+    emitToVendor(io, order.vendor.toString(), "order:cancelled", {
+      message: "Order cancelled",
+      order,
+    });
+  }
+};
+
+/**
+ * Emit order assigned to driver
+ * @param {Object} io - Socket.IO instance
+ * @param {String} driverId - Driver ID
+ * @param {Object} order - Order data
+ */
+const notifyDriverAssigned = (io, driverId, order) => {
+  emitToUser(io, driverId, "order:assigned", {
+    message: "You have been assigned to a new order",
     order,
   });
 };
 
 /**
- * Emit order cancelled to vendor
+ * Emit order delivered notification
  * @param {Object} io - Socket.IO instance
+ * @param {String} userId - User ID
  * @param {String} vendorId - Vendor ID
  * @param {Object} order - Order data
  */
-const notifyOrderCancelled = (io, vendorId, order) => {
-  emitToVendor(io, vendorId, "order:cancelled", {
-    message: "Order cancelled",
+const notifyOrderDelivered = (io, userId, vendorId, order) => {
+  // Notify customer
+  emitToUser(io, userId, "order:delivered", {
+    message: "Your order has been delivered",
     order,
   });
+
+  // Notify vendor
+  emitToVendor(io, vendorId, "order:delivered", {
+    message: "Order has been delivered",
+    order,
+  });
+};
+
+/**
+ * Emit new preparing order to all delivery users
+ * @param {Object} io - Socket.IO instance
+ * @param {Object} order - Order data
+ */
+const notifyPreparingOrder = (io, order) => {
+  // Only notify delivery if it's not a pickup order
+  if (!order.isPickup) {
+    emitToDelivery(io, "order:preparing", {
+      message: "New order is being prepared and ready for pickup",
+      order,
+    });
+  }
 };
 
 module.exports = {
@@ -150,4 +246,7 @@ module.exports = {
   notifyOrderStatusUpdate,
   notifyOrderAccepted,
   notifyOrderCancelled,
+  notifyDriverAssigned,
+  notifyOrderDelivered,
+  notifyPreparingOrder,
 };

@@ -85,7 +85,7 @@
  *           example: "64f1a2b3c4d5e6f7890a8888"
  *         status:
  *           type: string
- *           enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled]
+ *           enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled, canceled_by_vendor]
  *           description: Order status
  *           example: "pending"
  *         address:
@@ -131,7 +131,7 @@
  *         description: Filter orders by status. Can specify multiple times (e.g., ?status=pending&status=preparing) or single value (e.g., ?status=pending)
  *         schema:
  *           type: string
- *           enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled]
+ *           enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled, canceled_by_vendor]
  *         example: "pending"
  *         allowReserved: true
  *       - name: vendorId
@@ -236,7 +236,7 @@
  *             properties:
  *               status:
  *                 type: string
- *                 enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled]
+ *                 enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled, canceled_by_vendor]
  *                 description: New order status
  *                 example: "preparing"
  *     responses:
@@ -260,6 +260,49 @@
  *                       $ref: '#/components/schemas/Order'
  *       400:
  *         description: Bad request - Invalid status or status cannot be changed (delivered/cancelled orders)
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the vendor owner
+ *       404:
+ *         description: Order not found
+ */
+
+/**
+ * @swagger
+ * /api/v1/vendor/orders/{orderId}:
+ *   delete:
+ *     summary: Cancel order by vendor
+ *     description: Cancel an order as a vendor. Only pending orders can be cancelled. The order status will be set to "canceled_by_vendor" to differentiate from customer cancellations.
+ *     tags: ["Orders - Vendor"]
+ *     parameters:
+ *       - name: orderId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *     responses:
+ *       200:
+ *         description: Order cancelled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Order cancelled successfully by vendor"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     order:
+ *                       $ref: '#/components/schemas/Order'
+ *       400:
+ *         description: Bad request - Order cannot be cancelled (only pending orders can be cancelled)
  *       401:
  *         description: Unauthorized
  *       403:
