@@ -5,6 +5,7 @@ const swaggerUi = require("swagger-ui-express");
 require("./features/admin.docs");
 require("./features/vendor.docs");
 require("./features/user.docs");
+require("./features/delivery.docs");
 require("./features/auth/auth.docs");
 
 // Common configuration
@@ -142,6 +143,29 @@ const userOptions = {
 };
 
 // ============================================
+// 🚚 DELIVERY DOCUMENTATION
+// ============================================
+const deliveryOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "🚚 Delivery Application",
+      version: "1.0.0",
+      description:
+        "API endpoints for Delivery application. Required: x-api-key header with DELIVERY_APP_KEY",
+    },
+    servers: servers.map((s) => ({ ...s, url: s.url + "/delivery" })),
+    tags: [
+      { name: "Delivery - Orders", description: "Manage delivery orders" },
+      { name: "Users - Delivery", description: "Manage delivery profile" },
+    ],
+    components: { securitySchemes },
+    security: [{ apiKey: [] }], // Global API key requirement
+  },
+  apis: ["./features/**/docs/*.delivery.docs.js"],
+};
+
+// ============================================
 // 🔐 AUTHENTICATION DOCUMENTATION
 // ============================================
 const authOptions = {
@@ -199,6 +223,7 @@ const authOptions = {
 const adminSpec = swaggerJsdoc(adminOptions);
 const vendorSpec = swaggerJsdoc(vendorOptions);
 const userSpec = swaggerJsdoc(userOptions);
+const deliverySpec = swaggerJsdoc(deliveryOptions);
 const authSpec = swaggerJsdoc(authOptions);
 
 // Common Swagger UI options
@@ -242,6 +267,13 @@ function swaggerDocs(app) {
     swaggerUi.setup(userSpec, swaggerUiOptions)
   );
 
+  // 🚚 Delivery Documentation
+  app.use(
+    "/docs/delivery",
+    swaggerUi.serveFiles(deliverySpec),
+    swaggerUi.setup(deliverySpec, swaggerUiOptions)
+  );
+
   // 🔐 Authentication Documentation
   app.use(
     "/docs/auth",
@@ -253,6 +285,7 @@ function swaggerDocs(app) {
   app.get("/docs-json/admin", (req, res) => res.json(adminSpec));
   app.get("/docs-json/vendor", (req, res) => res.json(vendorSpec));
   app.get("/docs-json/user", (req, res) => res.json(userSpec));
+  app.get("/docs-json/delivery", (req, res) => res.json(deliverySpec));
   app.get("/docs-json/auth", (req, res) => res.json(authSpec));
 
   // Main documentation page with links
@@ -329,6 +362,7 @@ function swaggerDocs(app) {
           .card.admin { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
           .card.vendor { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
           .card.user { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+          .card.delivery { background: linear-gradient(135deg, #fa8bff 0%, #2bd2ff 90%, #2bff88 100%); }
           .card.auth { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
           .footer {
             text-align: center;
@@ -364,6 +398,12 @@ function swaggerDocs(app) {
               <div class="card-desc">User application endpoints</div>
             </a>
             
+            <a href="/docs/delivery" class="card delivery">
+              <div class="card-icon">🚚</div>
+              <div class="card-title">Delivery</div>
+              <div class="card-desc">Delivery application endpoints</div>
+            </a>
+            
             <a href="/docs/auth" class="card auth">
               <div class="card-icon">🔐</div>
               <div class="card-title">Authentication</div>
@@ -381,11 +421,12 @@ function swaggerDocs(app) {
   });
 
   console.log("\n📚 API Documentation Available:");
-  console.log("   🏠 Main Page:     http://localhost:5000/docs");
-  console.log("   👨‍💼 Admin Docs:   http://localhost:5000/docs/admin");
-  console.log("   🏪 Vendor Docs:  http://localhost:5000/docs/vendor");
-  console.log("   👤 User Docs:    http://localhost:5000/docs/user");
-  console.log("   🔐 Auth Docs:    http://localhost:5000/docs/auth\n");
+  console.log("   🏠 Main Page:      http://localhost:5000/docs");
+  console.log("   👨‍💼 Admin Docs:    http://localhost:5000/docs/admin");
+  console.log("   🏪 Vendor Docs:   http://localhost:5000/docs/vendor");
+  console.log("   👤 User Docs:     http://localhost:5000/docs/user");
+  console.log("   🚚 Delivery Docs: http://localhost:5000/docs/delivery");
+  console.log("   🔐 Auth Docs:     http://localhost:5000/docs/auth\n");
 }
 
 module.exports = swaggerDocs;

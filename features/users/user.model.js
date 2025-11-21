@@ -61,6 +61,13 @@ const userSchema = new Schema(
       enum: ["user", "admin", "vendor", "delivery"],
       required: true,
     },
+    isDeliveryCoordinator: {
+      type: Boolean,
+    },
+    deliveryStatus: {
+      type: String,
+      enum: ["online", "offline", "busy"],
+    },
   },
   { timestamps: true }
 );

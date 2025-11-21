@@ -85,7 +85,7 @@
  *           example: "64f1a2b3c4d5e6f7890a8888"
  *         status:
  *           type: string
- *           enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled]
+ *           enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled, canceled_by_vendor]
  *           description: Order status
  *           example: "pending"
  *         address:
@@ -253,7 +253,7 @@
  *         description: Filter orders by status. Can specify multiple times (e.g., ?status=pending&status=preparing) or single value (e.g., ?status=pending)
  *         schema:
  *           type: string
- *           enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled]
+ *           enum: [pending, received_by_restaurant, preparing, out_for_delivery, delivered, cancelled, canceled_by_vendor]
  *         example: "pending"
  *         allowReserved: true
  *     responses:

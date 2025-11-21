@@ -12,8 +12,8 @@ const { sanitizeOrder, sanitizeOrders } = require("./order.sanitizers");
 const {
   notifyNewOrder,
   notifyOrderStatusUpdate,
-  notifyOrderAccepted,
   notifyOrderCancelled,
+  notifyDriverAssigned,
 } = require("../../utils/socketService");
 
 // Preview order pricing without persisting
@@ -125,8 +125,36 @@ const getOrders = async (user, statuses = []) => {
 
 // Get single order (order provided by middleware)
 const getOrder = async (order) => {
-  order.populate("items.item", "name imagePath");
+  await order.populate("items.item", "name imagePath");
   return sanitizeOrder(order);
+};
+
+// Get order by ID (for delivery users)
+const getOrderById = async (orderId, user) => {
+  const order = await Order.findById(orderId)
+    .populate({
+      path: "user",
+      select: "name phone",
+    })
+    .populate({
+      path: "address",
+    })
+    .populate({
+      path: "items.item",
+      select: "name imagePath",
+    })
+    .lean();
+
+  if (!order) {
+    throw new NotFoundError("Order not found");
+  }
+
+  // Delivery users can see orders that are ready for delivery
+  if (user.type === "delivery") {
+    return sanitizeOrder(order);
+  }
+
+  throw new UnauthorizedError("You are not allowed to view this order");
 };
 
 // Cancel order (instead of physical delete)
@@ -188,7 +216,7 @@ const getVendorOrders = async (user, statuses = [], vendorId = null) => {
 
 // Get single order for vendor (order provided by middleware)
 const getVendorOrder = async (order) => {
-  order.populate("items.item", "name imagePath");
+  await order.populate("items.item", "name imagePath");
   return sanitizeOrder(order);
 };
 
@@ -213,24 +241,271 @@ const updateOrderStatus = async (user, order, status, io = null) => {
     throw new BadRequestError("Cannot change status of delivered order");
   }
 
-  if (order.status === "cancelled") {
+  if (order.status === "completed" || order.status === "received_by_customer") {
+    throw new BadRequestError("Cannot change status of completed order");
+  }
+
+  if (order.status === "cancelled" || order.status === "canceled_by_vendor") {
     throw new BadRequestError("Cannot change status of cancelled order");
   }
 
   const previousStatus = order.status;
   order.status = status;
   await order.save();
-  order.populate("items.item", "name imagePath");
+
+  // Populate items for all orders (user, vendor, and delivery)
+  await order.populate("items.item", "name imagePath");
   const sanitizedOrder = sanitizeOrder(order);
 
   // Notify user about status update
   if (io) {
-    notifyOrderStatusUpdate(io, order.user.toString(), sanitizedOrder);
-
-    // If vendor accepts order (changes from pending to preparing), notify delivery
-    if (previousStatus === "pending" && status === "preparing") {
-      notifyOrderAccepted(io, sanitizedOrder);
+    // For delivery orders, prepare a separate order with full populate
+    let deliveryOrder = null;
+    if (!order.isPickup) {
+      const fullOrder = await Order.findById(order._id)
+        .populate({
+          path: "user",
+          select: "name phone",
+        })
+        .populate({
+          path: "address",
+        })
+        .populate({
+          path: "items.item",
+          select: "name imagePath",
+        })
+        .lean();
+      deliveryOrder = sanitizeOrder(fullOrder);
     }
+
+    // Notify user, vendor, and delivery (with appropriate data for each)
+    notifyOrderStatusUpdate(
+      io,
+      order.user.toString(),
+      sanitizedOrder,
+      deliveryOrder
+    );
+
+    // If vendor cancels order
+    if (status === "canceled_by_vendor") {
+      notifyOrderCancelled(io, order.user.toString(), sanitizedOrder);
+    }
+  }
+
+  return sanitizedOrder;
+};
+
+// Get all orders ready for delivery (status: preparing, out_for_delivery, or delivered)
+const getDeliveryOrders = async (statuses = []) => {
+  const filter = {
+    isPickup: false, // Exclude pickup orders - they don't need delivery
+  };
+
+  // If no statuses provided, default to preparing, out_for_delivery, and delivered
+  if (statuses.length === 0) {
+    filter.status = { $in: ["preparing", "out_for_delivery", "delivered"] };
+  } else {
+    filter.status = { $in: statuses };
+  }
+
+  const orders = await Order.find(filter)
+    .populate({
+      path: "user",
+      select: "name phone",
+    })
+    .populate({
+      path: "address",
+    })
+    .populate({
+      path: "items.item",
+      select: "name imagePath",
+    })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  return sanitizeOrders(orders);
+};
+
+// Assign delivery driver to order
+const assignDeliveryDriver = async (order, driverId, io = null) => {
+  if (order.isPickup) {
+    throw new BadRequestError(
+      "Pickup orders do not require delivery assignment"
+    );
+  }
+
+  if (order.status !== "preparing" && order.status !== "out_for_delivery") {
+    throw new BadRequestError("Order is not ready for delivery assignment");
+  }
+
+  order.assignedDriver = driverId;
+  order.status = "out_for_delivery";
+  await order.save();
+
+  // Populate for delivery (full data)
+  await order.populate([
+    {
+      path: "user",
+      select: "name phone",
+    },
+    {
+      path: "address",
+    },
+    {
+      path: "items.item",
+      select: "name imagePath",
+    },
+  ]);
+
+  const deliveryOrder = sanitizeOrder(order);
+
+  // Get order with items only for user/vendor
+  const userVendorOrder = await Order.findById(order._id)
+    .populate({
+      path: "items.item",
+      select: "name imagePath",
+    })
+    .lean();
+  const userVendorSanitized = sanitizeOrder(userVendorOrder);
+
+  // Notify user, vendor, and driver
+  if (io) {
+    notifyOrderStatusUpdate(
+      io,
+      order.user.toString(),
+      userVendorSanitized,
+      deliveryOrder
+    );
+    notifyDriverAssigned(io, driverId.toString(), deliveryOrder);
+  }
+
+  return deliveryOrder;
+};
+
+// Update order status by delivery driver
+const updateDeliveryOrderStatus = async (
+  order,
+  driverId,
+  status,
+  io = null
+) => {
+  if (order.isPickup) {
+    throw new BadRequestError("Pickup orders cannot be updated by delivery");
+  }
+
+  // Delivery can only update to out_for_delivery or delivered
+  if (status !== "out_for_delivery" && status !== "delivered") {
+    throw new BadRequestError(
+      "Delivery can only update status to 'out_for_delivery' or 'delivered'"
+    );
+  }
+
+  // Prevent status changes if already delivered or cancelled
+  if (order.status === "delivered") {
+    throw new BadRequestError("Order is already delivered");
+  }
+
+  if (order.status === "completed" || order.status === "received_by_customer") {
+    throw new BadRequestError("Cannot update completed order");
+  }
+
+  if (order.status === "cancelled" || order.status === "canceled_by_vendor") {
+    throw new BadRequestError("Cannot update cancelled order");
+  }
+
+  order.status = status;
+  await order.save();
+
+  // Populate for delivery (full data)
+  await order.populate([
+    {
+      path: "user",
+      select: "name phone",
+    },
+    {
+      path: "address",
+    },
+    {
+      path: "items.item",
+      select: "name imagePath",
+    },
+  ]);
+
+  const deliveryOrder = sanitizeOrder(order);
+
+  // Get order with items only for user/vendor
+  const userVendorOrder = await Order.findById(order._id)
+    .populate({
+      path: "items.item",
+      select: "name imagePath",
+    })
+    .lean();
+  const userVendorSanitized = sanitizeOrder(userVendorOrder);
+
+  // Notify user, vendor, and delivery
+  if (io) {
+    notifyOrderStatusUpdate(
+      io,
+      order.user.toString(),
+      userVendorSanitized,
+      deliveryOrder
+    );
+  }
+
+  return deliveryOrder;
+};
+
+// Get delivery driver's assigned orders
+const getDriverOrders = async (driverId, statuses = []) => {
+  const filter = { assignedDriver: driverId };
+
+  if (statuses.length > 0) {
+    filter.status = { $in: statuses };
+  }
+
+  const orders = await Order.find(filter)
+    .populate({
+      path: "user",
+      select: "name phone",
+    })
+    .populate({
+      path: "address",
+    })
+    .populate({
+      path: "items.item",
+      select: "name imagePath",
+    })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  return sanitizeOrders(orders);
+};
+
+// Cancel order by vendor
+const cancelOrderByVendor = async (user, order, io = null) => {
+  // Verify that the order belongs to a vendor owned by this user
+  const vendor = await Vendor.findOne({
+    _id: order.vendor,
+    owner: user._id,
+  }).lean();
+
+  if (!vendor) {
+    throw new UnauthorizedError("You are not allowed to cancel this order");
+  }
+
+  // Vendor can only cancel pending orders
+  if (order.status !== "pending") {
+    throw new BadRequestError("Only pending orders can be cancelled");
+  }
+
+  order.status = "canceled_by_vendor";
+  await order.save();
+  await order.populate("items.item", "name imagePath");
+  const sanitizedOrder = sanitizeOrder(order);
+
+  // Notify user about cancellation
+  if (io) {
+    notifyOrderCancelled(io, order.user.toString(), sanitizedOrder);
   }
 
   return sanitizedOrder;
@@ -241,8 +516,14 @@ module.exports = {
   createOrder,
   getOrders,
   getOrder,
+  getOrderById,
   cancelOrder,
   getVendorOrders,
   getVendorOrder,
   updateOrderStatus,
+  cancelOrderByVendor,
+  getDeliveryOrders,
+  assignDeliveryDriver,
+  updateDeliveryOrderStatus,
+  getDriverOrders,
 };

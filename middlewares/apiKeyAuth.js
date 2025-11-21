@@ -3,6 +3,7 @@ const validKeys = {
   user: process.env.USER_APP_KEY,
   vendor: process.env.VENDOR_APP_KEY,
   admin: process.env.ADMIN_APP_KEY,
+  delivery: process.env.DELIVERY_APP_KEY,
 };
 
 const checkApiKey = (allowedApp) => {
