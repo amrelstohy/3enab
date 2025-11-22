@@ -137,6 +137,10 @@ const getOrderById = async (orderId, user) => {
       select: "name phone",
     })
     .populate({
+      path: "vendor",
+      select: "name logoPath",
+    })
+    .populate({
       path: "address",
     })
     .populate({
@@ -268,6 +272,10 @@ const updateOrderStatus = async (user, order, status, io = null) => {
           select: "name phone",
         })
         .populate({
+          path: "vendor",
+          select: "name logoPath",
+        })
+        .populate({
           path: "address",
         })
         .populate({
@@ -301,17 +309,34 @@ const getDeliveryOrders = async (statuses = []) => {
     isPickup: false, // Exclude pickup orders - they don't need delivery
   };
 
-  // If no statuses provided, default to preparing, out_for_delivery, and delivered
+  // Only allow specific statuses for delivery
+  const allowedStatuses = ["preparing", "out_for_delivery", "delivered"];
+
+  // If no statuses provided, use all allowed statuses
   if (statuses.length === 0) {
-    filter.status = { $in: ["preparing", "out_for_delivery", "delivered"] };
+    filter.status = { $in: allowedStatuses };
   } else {
-    filter.status = { $in: statuses };
+    // Filter to only include allowed statuses
+    const validStatuses = statuses.filter((status) =>
+      allowedStatuses.includes(status)
+    );
+
+    // If no valid statuses after filtering, use all allowed statuses
+    if (validStatuses.length === 0) {
+      filter.status = { $in: allowedStatuses };
+    } else {
+      filter.status = { $in: validStatuses };
+    }
   }
 
   const orders = await Order.find(filter)
     .populate({
       path: "user",
       select: "name phone",
+    })
+    .populate({
+      path: "vendor",
+      select: "name logoPath",
     })
     .populate({
       path: "address",
@@ -347,6 +372,10 @@ const assignDeliveryDriver = async (order, driverId, io = null) => {
     {
       path: "user",
       select: "name phone",
+    },
+    {
+      path: "vendor",
+      select: "name logoPath",
     },
     {
       path: "address",
@@ -423,6 +452,10 @@ const updateDeliveryOrderStatus = async (
       select: "name phone",
     },
     {
+      path: "vendor",
+      select: "name logoPath",
+    },
+    {
       path: "address",
     },
     {
@@ -467,6 +500,10 @@ const getDriverOrders = async (driverId, statuses = []) => {
     .populate({
       path: "user",
       select: "name phone",
+    })
+    .populate({
+      path: "vendor",
+      select: "name logoPath",
     })
     .populate({
       path: "address",
