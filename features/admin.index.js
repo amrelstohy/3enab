@@ -5,6 +5,7 @@ const isAuth = require("../middlewares/auth.middleware");
 // Admin Routes (Admin App - /api/v1/admin/)
 const authRoutes = require("./auth/auth.routes");
 const userAdminRoutes = require("./users/routes/user.admin.routes");
+const userFCMRoutes = require("./users/routes/user.fcm.routes");
 const vendorAdminRoutes = require("./vendors/routes/vendor.admin.routes");
 const adAdminRoutes = require("./ads/routes/ad.admin.routes");
 const vendorCategoryAdminRoutes = require("./vendorCategories/routes/vendorCategory.admin.routes");
@@ -14,6 +15,7 @@ const deliveryAreaAdminRoutes = require("./deliveryArea/routes/deliverArea.admin
 // Admin endpoints - full CRUD access
 router.use("/auth", authRoutes);
 router.use("/users", isAuth, userAdminRoutes); // Admin user profile management
+router.use("/fcm-token", userFCMRoutes); // FCM token management (all users)
 router.use("/vendors", isAuth, vendorAdminRoutes);
 router.use("/ads", isAuth, adAdminRoutes);
 router.use("/vendorCategories", isAuth, vendorCategoryAdminRoutes);
