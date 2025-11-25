@@ -1,7 +1,15 @@
 /**
  * Socket.IO Service
  * Utility functions for emitting events to connected clients
+ * Integrated with Firebase Cloud Messaging (FCM) for push notifications
  */
+
+const {
+  sendNotificationToUser,
+  sendNotificationToVendor,
+  sendNotificationToAllDelivery,
+  sendNotificationToDriver,
+} = require("./notificationService");
 
 /**
  * Get Socket.IO instance from app
@@ -96,10 +104,27 @@ const emitToAdmin = (io, event, data) => {
  * @param {Object} order - Order data
  */
 const notifyNewOrder = (io, vendorId, order) => {
+  // Send via Socket.IO
   emitToVendor(io, vendorId, "order:new", {
     message: "New order received",
     order,
   });
+
+  // Send push notification
+  sendNotificationToVendor(
+    vendorId,
+    {
+      title: "طلب جديد",
+      body: `لديك طلب جديد برقم #${order.orderNumber || order._id}`,
+    },
+    {
+      type: "order:new",
+      orderId: order._id?.toString() || order.id?.toString(),
+      orderNumber: order.orderNumber?.toString() || "",
+    }
+  ).catch((err) =>
+    console.error("Failed to send new order notification:", err)
+  );
 };
 
 /**
@@ -110,11 +135,43 @@ const notifyNewOrder = (io, vendorId, order) => {
  * @param {Object} deliveryOrder - Order data with full populate for delivery (optional)
  */
 const notifyOrderStatusUpdate = (io, userId, order, deliveryOrder = null) => {
-  // Always notify the customer
+  // Status text in Arabic
+  const statusTextAr = {
+    pending: "قيد الانتظار",
+    accepted: "تم القبول",
+    preparing: "قيد التحضير",
+    out_for_delivery: "في الطريق",
+    delivered: "تم التوصيل",
+    completed: "مكتمل",
+    cancelled: "ملغي",
+    canceled_by_vendor: "ملغي من البائع",
+    received_by_customer: "تم الاستلام",
+  };
+
+  const statusText = statusTextAr[order.status] || order.status;
+  const orderId = order._id?.toString() || order.id?.toString();
+
+  // Always notify the customer via Socket & Push
   emitToUser(io, userId, "order:status-updated", {
     message: "Order status updated",
     order,
   });
+
+  sendNotificationToUser(
+    userId,
+    {
+      title: "تحديث حالة الطلب",
+      body: `حالة طلبك #${order.orderNumber || orderId}: ${statusText}`,
+    },
+    {
+      type: "order:status-updated",
+      orderId,
+      status: order.status,
+      orderNumber: order.orderNumber?.toString() || "",
+    }
+  ).catch((err) =>
+    console.error("Failed to send status update notification to user:", err)
+  );
 
   // Always notify the vendor about all status changes
   if (order.vendor) {
@@ -122,6 +179,24 @@ const notifyOrderStatusUpdate = (io, userId, order, deliveryOrder = null) => {
       message: "Order status updated",
       order,
     });
+
+    sendNotificationToVendor(
+      order.vendor.toString(),
+      {
+        title: "تحديث حالة الطلب",
+        body: `تم تحديث حالة الطلب #${
+          order.orderNumber || orderId
+        } إلى: ${statusText}`,
+      },
+      {
+        type: "order:status-updated",
+        orderId,
+        status: order.status,
+        orderNumber: order.orderNumber?.toString() || "",
+      }
+    ).catch((err) =>
+      console.error("Failed to send status update notification to vendor:", err)
+    );
   }
 
   // Notify delivery users for statuses from 'preparing' onwards (only if not pickup order)
@@ -146,6 +221,27 @@ const notifyOrderStatusUpdate = (io, userId, order, deliveryOrder = null) => {
         message,
         order: orderForDelivery,
       });
+
+      // Send push notification to all delivery users
+      if (order.status === "preparing") {
+        sendNotificationToAllDelivery(
+          {
+            title: "طلب جديد متاح للتوصيل",
+            body: `طلب جديد #${order.orderNumber || orderId} جاهز للتوصيل`,
+          },
+          {
+            type: "order:new-delivery",
+            orderId,
+            status: order.status,
+            orderNumber: order.orderNumber?.toString() || "",
+          }
+        ).catch((err) =>
+          console.error(
+            "Failed to send new delivery notification to drivers:",
+            err
+          )
+        );
+      }
     }
   }
 };
@@ -172,11 +268,32 @@ const notifyOrderAccepted = (io, order) => {
  * @param {Object} order - Order data
  */
 const notifyOrderCancelled = (io, targetId, order) => {
+  const orderId = order._id?.toString() || order.id?.toString();
+  const isCanceledByVendor = order.status === "canceled_by_vendor";
+
   // Notify the target (user or vendor who receives cancellation)
   emitToUser(io, targetId, "order:cancelled", {
     message: "Order cancelled",
     order,
   });
+
+  sendNotificationToUser(
+    targetId,
+    {
+      title: "تم إلغاء الطلب",
+      body: isCanceledByVendor
+        ? `تم إلغاء طلبك #${order.orderNumber || orderId} من قبل البائع`
+        : `تم إلغاء الطلب #${order.orderNumber || orderId}`,
+    },
+    {
+      type: "order:cancelled",
+      orderId,
+      status: order.status,
+      orderNumber: order.orderNumber?.toString() || "",
+    }
+  ).catch((err) =>
+    console.error("Failed to send cancellation notification to user:", err)
+  );
 
   // Also notify vendor about cancellation
   if (order.vendor && targetId !== order.vendor.toString()) {
@@ -184,6 +301,22 @@ const notifyOrderCancelled = (io, targetId, order) => {
       message: "Order cancelled",
       order,
     });
+
+    sendNotificationToVendor(
+      order.vendor.toString(),
+      {
+        title: "تم إلغاء طلب",
+        body: `تم إلغاء الطلب #${order.orderNumber || orderId}`,
+      },
+      {
+        type: "order:cancelled",
+        orderId,
+        status: order.status,
+        orderNumber: order.orderNumber?.toString() || "",
+      }
+    ).catch((err) =>
+      console.error("Failed to send cancellation notification to vendor:", err)
+    );
   }
 };
 
@@ -194,10 +327,29 @@ const notifyOrderCancelled = (io, targetId, order) => {
  * @param {Object} order - Order data
  */
 const notifyDriverAssigned = (io, driverId, order) => {
+  const orderId = order._id?.toString() || order.id?.toString();
+
+  // Send via Socket.IO
   emitToUser(io, driverId, "order:assigned", {
     message: "You have been assigned to a new order",
     order,
   });
+
+  // Send push notification
+  sendNotificationToDriver(
+    driverId,
+    {
+      title: "تم تعيين طلب لك",
+      body: `تم تعيين طلب جديد #${order.orderNumber || orderId} لك للتوصيل`,
+    },
+    {
+      type: "order:assigned",
+      orderId,
+      orderNumber: order.orderNumber?.toString() || "",
+    }
+  ).catch((err) =>
+    console.error("Failed to send driver assignment notification:", err)
+  );
 };
 
 /**
@@ -208,17 +360,49 @@ const notifyDriverAssigned = (io, driverId, order) => {
  * @param {Object} order - Order data
  */
 const notifyOrderDelivered = (io, userId, vendorId, order) => {
-  // Notify customer
+  const orderId = order._id?.toString() || order.id?.toString();
+
+  // Notify customer via Socket & Push
   emitToUser(io, userId, "order:delivered", {
     message: "Your order has been delivered",
     order,
   });
 
-  // Notify vendor
+  sendNotificationToUser(
+    userId,
+    {
+      title: "تم توصيل طلبك",
+      body: `تم توصيل طلبك #${order.orderNumber || orderId} بنجاح`,
+    },
+    {
+      type: "order:delivered",
+      orderId,
+      orderNumber: order.orderNumber?.toString() || "",
+    }
+  ).catch((err) =>
+    console.error("Failed to send delivery notification to user:", err)
+  );
+
+  // Notify vendor via Socket & Push
   emitToVendor(io, vendorId, "order:delivered", {
     message: "Order has been delivered",
     order,
   });
+
+  sendNotificationToVendor(
+    vendorId,
+    {
+      title: "تم توصيل الطلب",
+      body: `تم توصيل الطلب #${order.orderNumber || orderId} بنجاح`,
+    },
+    {
+      type: "order:delivered",
+      orderId,
+      orderNumber: order.orderNumber?.toString() || "",
+    }
+  ).catch((err) =>
+    console.error("Failed to send delivery notification to vendor:", err)
+  );
 };
 
 /**
@@ -229,10 +413,30 @@ const notifyOrderDelivered = (io, userId, vendorId, order) => {
 const notifyPreparingOrder = (io, order) => {
   // Only notify delivery if it's not a pickup order
   if (!order.isPickup) {
+    const orderId = order._id?.toString() || order.id?.toString();
+
+    // Send via Socket.IO
     emitToDelivery(io, "order:preparing", {
       message: "New order is being prepared and ready for pickup",
       order,
     });
+
+    // Send push notification to all delivery users
+    sendNotificationToAllDelivery(
+      {
+        title: "طلب قيد التحضير",
+        body: `طلب جديد #${
+          order.orderNumber || orderId
+        } قيد التحضير وجاهز للاستلام`,
+      },
+      {
+        type: "order:preparing",
+        orderId,
+        orderNumber: order.orderNumber?.toString() || "",
+      }
+    ).catch((err) =>
+      console.error("Failed to send preparing notification to drivers:", err)
+    );
   }
 };
 

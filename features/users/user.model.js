@@ -68,6 +68,10 @@ const userSchema = new Schema(
       type: String,
       enum: ["online", "offline", "busy"],
     },
+    fcmToken: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

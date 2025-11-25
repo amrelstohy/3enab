@@ -5,6 +5,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const helmet = require("helmet");
 const connectDB = require("./config/db");
+const { initializeFirebase } = require("./config/firebase");
 const userRoutes = require("./features/user.index");
 const vendorRoutes = require("./features/vendor.index");
 const adminRoutes = require("./features/admin.index");
@@ -47,6 +48,13 @@ connectDB().then(() => {
   const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
+
+  // Initialize Firebase Admin SDK
+  try {
+    initializeFirebase();
+  } catch (error) {
+    console.error("Failed to initialize Firebase:", error.message);
+  }
 
   // Initialize Socket.IO
   const { initializeSocket } = require("./config/socket");
