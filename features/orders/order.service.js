@@ -12,8 +12,11 @@ const { sanitizeOrder, sanitizeOrders } = require("./order.sanitizers");
 const {
   notifyNewOrder,
   notifyOrderStatusUpdate,
+  notifyOrderAccepted,
   notifyOrderCancelled,
   notifyDriverAssigned,
+  notifyOrderDelivered,
+  notifyPreparingOrder,
 } = require("../../utils/socketService");
 
 // Preview order pricing without persisting
@@ -286,13 +289,38 @@ const updateOrderStatus = async (user, order, status, io = null) => {
       deliveryOrder = sanitizeOrder(fullOrder);
     }
 
-    // Notify user, vendor, and delivery (with appropriate data for each)
-    notifyOrderStatusUpdate(
-      io,
-      order.user.toString(),
-      sanitizedOrder,
-      deliveryOrder
-    );
+    // If order is delivered, send delivery notification
+    if (status === "delivered") {
+      notifyOrderDelivered(
+        io,
+        order.user.toString(),
+        order.vendor.toString(),
+        sanitizedOrder
+      );
+    } else if (status === "preparing" && previousStatus === "pending") {
+      // Vendor accepted the order and started preparing
+      notifyOrderAccepted(io, order.user.toString(), sanitizedOrder);
+      // Notify delivery drivers that order is being prepared
+      notifyPreparingOrder(io, deliveryOrder || sanitizedOrder);
+    } else if (status === "preparing") {
+      // Order is already preparing, just update status
+      notifyOrderStatusUpdate(
+        io,
+        order.user.toString(),
+        sanitizedOrder,
+        deliveryOrder
+      );
+      // Notify delivery drivers that order is being prepared
+      notifyPreparingOrder(io, deliveryOrder || sanitizedOrder);
+    } else {
+      // Notify user, vendor, and delivery (with appropriate data for each)
+      notifyOrderStatusUpdate(
+        io,
+        order.user.toString(),
+        sanitizedOrder,
+        deliveryOrder
+      );
+    }
 
     // If vendor cancels order
     if (status === "canceled_by_vendor") {
@@ -477,12 +505,23 @@ const updateDeliveryOrderStatus = async (
 
   // Notify user, vendor, and delivery
   if (io) {
-    notifyOrderStatusUpdate(
-      io,
-      order.user.toString(),
-      userVendorSanitized,
-      deliveryOrder
-    );
+    if (status === "delivered") {
+      // Special notification when order is delivered
+      notifyOrderDelivered(
+        io,
+        order.user.toString(),
+        order.vendor.toString(),
+        userVendorSanitized
+      );
+    } else {
+      // General status update notification
+      notifyOrderStatusUpdate(
+        io,
+        order.user.toString(),
+        userVendorSanitized,
+        deliveryOrder
+      );
+    }
   }
 
   return deliveryOrder;
