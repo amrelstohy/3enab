@@ -31,8 +31,13 @@ const totalPriceCalc = async (
     user: userId,
     error: null,
   };
-  const quantityMap = new Map(
-    cartItems.map((cartItem) => [cartItem.item, cartItem.quantity])
+
+  // Create maps for easier lookup
+  const cartItemsMap = new Map(
+    cartItems.map((cartItem) => [
+      cartItem.item,
+      { quantity: cartItem.quantity, optionId: cartItem.optionId || null },
+    ])
   );
 
   const itemIds = cartItems.map((cartItem) => cartItem.item);
@@ -56,12 +61,36 @@ const totalPriceCalc = async (
 
   let subtotal = 0;
   for (const item of items) {
-    let unitPrice = item.getFinalPrice();
-    let totalPrice = unitPrice * quantityMap.get(item._id.toString());
+    const cartItemData = cartItemsMap.get(item._id.toString());
+    const optionId = cartItemData.optionId;
+
+    // Get price using the item's getPrice method
+    let unitPrice = item.getPrice(optionId);
+
+    // If unitPrice is null, it means invalid optionId
+    if (unitPrice === null) {
+      throw new BadRequestError(
+        `Invalid option selected for item: ${item.name}`
+      );
+    }
+
+    let totalPrice = unitPrice * cartItemData.quantity;
     subtotal += totalPrice;
+
+    // Get option value if optionId exists
+    let optionValue = null;
+    if (optionId && item.options.length > 0) {
+      const selectedOption = item.options.id(optionId);
+      if (selectedOption) {
+        optionValue = selectedOption.value;
+      }
+    }
+
     result.items.push({
       item: item._id,
-      quantity: quantityMap.get(item._id.toString()),
+      optionId: optionId,
+      optionValue: optionValue,
+      quantity: cartItemData.quantity,
       unitPrice: unitPrice,
       totalPrice: totalPrice,
     });

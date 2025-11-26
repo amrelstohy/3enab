@@ -6,7 +6,8 @@ const path = require("path");
 
 // Create item
 const createItem = async (itemData, menuCategoryId, vendorId) => {
-  const { name, description, basePrice, prepTime } = itemData;
+  const { name, description, basePrice, prepTime, optionType, options } =
+    itemData;
 
   const itemNum = await Item.countDocuments({ category: menuCategoryId });
 
@@ -14,6 +15,8 @@ const createItem = async (itemData, menuCategoryId, vendorId) => {
     name,
     description,
     basePrice,
+    optionType: optionType || "none",
+    options: options || [],
     category: menuCategoryId,
     order: itemNum + 1,
     prepTime,
@@ -42,12 +45,22 @@ const getItemImage = async (item) => {
 
 // Update item
 const updateItem = async (item, updateData) => {
-  const { name, description, basePrice, prepTime } = updateData;
+  const { name, description, basePrice, prepTime, optionType, options } =
+    updateData;
 
   item.name = name;
   item.description = description;
   item.basePrice = basePrice;
   item.prepTime = prepTime;
+
+  // Update optionType and options if provided
+  if (optionType !== undefined) {
+    item.optionType = optionType;
+  }
+  if (options !== undefined) {
+    item.options = options;
+  }
+
   await item.save();
   return sanitizeItem(item);
 };

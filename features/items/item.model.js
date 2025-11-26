@@ -31,6 +31,24 @@ const discountSchema = new Schema(
   { _id: false }
 );
 
+const optionSchema = new Schema(
+  {
+    value: {
+      type: String,
+      required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    order: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { _id: true }
+);
+
 const itemSchema = new Schema(
   {
     name: {
@@ -44,6 +62,15 @@ const itemSchema = new Schema(
     basePrice: {
       type: Number,
       required: true,
+    },
+    optionType: {
+      type: String,
+      enum: ["none", "size", "weight"],
+      default: "none",
+    },
+    options: {
+      type: [optionSchema],
+      default: [],
     },
     discount: {
       type: discountSchema,
@@ -87,10 +114,22 @@ const itemSchema = new Schema(
 
 itemSchema.index({ category: 1, isActive: 1, order: 1 });
 
-itemSchema.methods.getFinalPrice = function () {
+itemSchema.methods.getPrice = function (optionId = null) {
   const now = new Date();
-  const { basePrice, discount } = this;
 
+  // no options
+  if (this.optionType === "none") {
+    return applyDiscount(this.basePrice, this.discount, now);
+  }
+
+  // with options → optionId is required
+  const opt = this.options.id(optionId);
+  if (!opt) return null;
+
+  return applyDiscount(opt.price, this.discount, now);
+};
+
+function applyDiscount(price, discount, now) {
   if (
     discount &&
     discount.isActive &&
@@ -98,15 +137,16 @@ itemSchema.methods.getFinalPrice = function () {
     (!discount.startDate || now >= discount.startDate) &&
     (!discount.endDate || now <= discount.endDate)
   ) {
-    const finalPrice =
+    const final =
       discount.type === "percentage"
-        ? basePrice - basePrice * (discount.value / 100)
-        : basePrice - discount.value;
-    return Math.max(Number(finalPrice.toFixed(2)), 0);
+        ? price - price * (discount.value / 100)
+        : price - discount.value;
+
+    return Math.max(Number(final.toFixed(2)), 0);
   }
 
-  return basePrice;
-};
+  return price;
+}
 
 const Item = mongoose.model("Item", itemSchema);
 

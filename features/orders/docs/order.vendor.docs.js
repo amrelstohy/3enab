@@ -33,6 +33,16 @@
  *           type: number
  *           description: Total price for this item (unitPrice * quantity)
  *           example: 100
+ *         optionId:
+ *           type: string
+ *           nullable: true
+ *           description: ID of the selected item option (if applicable)
+ *           example: "64f1a2b3c4d5e6f7890a5555"
+ *         optionValue:
+ *           type: string
+ *           nullable: true
+ *           description: Value of the selected item option (e.g., "Large", "1kg")
+ *           example: "Large"
  *     Order:
  *       type: object
  *       properties:

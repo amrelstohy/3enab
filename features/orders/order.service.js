@@ -296,7 +296,7 @@ const updateOrderStatus = async (user, order, status, io = null) => {
 
     // If vendor cancels order
     if (status === "canceled_by_vendor") {
-      notifyOrderCancelled(io, order.user.toString(), sanitizedOrder);
+      notifyOrderCancelled(io, order.vendor.toString(), sanitizedOrder);
     }
   }
 
@@ -540,9 +540,9 @@ const cancelOrderByVendor = async (user, order, io = null) => {
   await order.populate("items.item", "name imagePath");
   const sanitizedOrder = sanitizeOrder(order);
 
-  // Notify user about cancellation
+  // Notify user about cancellation (vendor is cancelling)
   if (io) {
-    notifyOrderCancelled(io, order.user.toString(), sanitizedOrder);
+    notifyOrderCancelled(io, order.vendor.toString(), sanitizedOrder);
   }
 
   return sanitizedOrder;

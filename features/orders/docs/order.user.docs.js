@@ -21,13 +21,23 @@
  *               type: string
  *               description: Item image path
  *               example: "uploads/items/pizza.jpg"
+ *         optionId:
+ *           type: string
+ *           nullable: true
+ *           description: Selected option ID (if item has options)
+ *           example: "64f1a2b3c4d5e6f7890a5555"
+ *         optionValue:
+ *           type: string
+ *           nullable: true
+ *           description: Selected option value (e.g., "Large", "500g")
+ *           example: "Large"
  *         quantity:
  *           type: number
  *           description: Item quantity
  *           example: 2
  *         unitPrice:
  *           type: number
- *           description: Unit price at time of order
+ *           description: Unit price at time of order (with selected option)
  *           example: 50
  *         totalPrice:
  *           type: number
@@ -195,6 +205,11 @@
  *                       type: string
  *                       description: Item ID
  *                       example: "64f1a2b3c4d5e6f7890a1234"
+ *                     optionId:
+ *                       type: string
+ *                       nullable: true
+ *                       description: Option ID (required if item has options like size/weight)
+ *                       example: "64f1a2b3c4d5e6f7890a5555"
  *                     quantity:
  *                       type: number
  *                       minimum: 1
@@ -304,6 +319,11 @@
  *                       type: string
  *                       description: Item ID
  *                       example: "64f1a2b3c4d5e6f7890a1234"
+ *                     optionId:
+ *                       type: string
+ *                       nullable: true
+ *                       description: Option ID (required if item has options like size/weight)
+ *                       example: "64f1a2b3c4d5e6f7890a5555"
  *                     quantity:
  *                       type: number
  *                       minimum: 1

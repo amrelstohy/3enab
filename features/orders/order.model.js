@@ -19,6 +19,14 @@ const orderItemSchema = new mongoose.Schema(
       ref: "Item",
       required: true,
     },
+    optionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+    optionValue: {
+      type: String,
+      default: null,
+    },
     quantity: {
       type: Number,
       required: true,
