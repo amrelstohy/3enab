@@ -11,6 +11,8 @@ const sanitizeItem = (item) => {
     name: item.name,
     description: item.description,
     basePrice: item.basePrice,
+    optionType: item.optionType,
+    options: item.options || [],
     discount: item.discount,
     isActive: item.isActive,
     isAvailable: item.isAvailable,

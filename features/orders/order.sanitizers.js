@@ -1,6 +1,8 @@
 const sanitizeOrderItem = (orderItem) => {
   return {
     item: orderItem.item,
+    optionId: orderItem.optionId || null,
+    optionValue: orderItem.optionValue || null,
     quantity: orderItem.quantity,
     unitPrice: orderItem.unitPrice,
     totalPrice: orderItem.totalPrice,

@@ -267,46 +267,44 @@ const notifyOrderAccepted = (io, order) => {
  * @param {String} targetId - User or Vendor ID (who receives the notification)
  * @param {Object} order - Order data
  */
-const notifyOrderCancelled = (io, targetId, order) => {
+const notifyOrderCancelled = (io, vendorId, order) => {
   const orderId = order._id?.toString() || order.id?.toString();
   const isCanceledByVendor = order.status === "canceled_by_vendor";
 
-  // Notify the target (user or vendor who receives cancellation)
-  emitToUser(io, targetId, "order:cancelled", {
-    message: "Order cancelled",
-    order,
-  });
+  if (isCanceledByVendor) {
+    // Vendor cancelled the order → notify the user
+    emitToUser(io, order.user.toString(), "order:cancelled", {
+      message: "Order cancelled by vendor",
+      order,
+    });
 
-  sendNotificationToUser(
-    targetId,
-    {
-      title: "تم إلغاء الطلب",
-      body: isCanceledByVendor
-        ? `تم إلغاء طلبك #${order.orderNumber || orderId} من قبل البائع`
-        : `تم إلغاء الطلب #${order.orderNumber || orderId}`,
-    },
-    {
-      type: "order:cancelled",
-      orderId,
-      status: order.status,
-      orderNumber: order.orderNumber?.toString() || "",
-    }
-  ).catch((err) =>
-    console.error("Failed to send cancellation notification to user:", err)
-  );
-
-  // Also notify vendor about cancellation
-  if (order.vendor && targetId !== order.vendor.toString()) {
-    emitToVendor(io, order.vendor.toString(), "order:cancelled", {
-      message: "Order cancelled",
+    sendNotificationToUser(
+      order.user.toString(),
+      {
+        title: "تم إلغاء الطلب",
+        body: `تم إلغاء طلبك #${order.orderNumber || orderId} من قبل البائع`,
+      },
+      {
+        type: "order:cancelled",
+        orderId,
+        status: order.status,
+        orderNumber: order.orderNumber?.toString() || "",
+      }
+    ).catch((err) =>
+      console.error("Failed to send cancellation notification to user:", err)
+    );
+  } else {
+    // User cancelled the order → notify the vendor
+    emitToVendor(io, vendorId, "order:cancelled", {
+      message: "Order cancelled by customer",
       order,
     });
 
     sendNotificationToVendor(
-      order.vendor.toString(),
+      vendorId,
       {
         title: "تم إلغاء طلب",
-        body: `تم إلغاء الطلب #${order.orderNumber || orderId}`,
+        body: `تم إلغاء الطلب #${order.orderNumber || orderId} من قبل العميل`,
       },
       {
         type: "order:cancelled",

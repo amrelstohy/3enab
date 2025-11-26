@@ -25,8 +25,35 @@
  *           example: "Fresh pizza with premium ingredients"
  *         basePrice:
  *           type: number
- *           description: Base price of the item
+ *           description: Base price of the item (used when optionType is "none")
  *           example: 25.99
+ *         optionType:
+ *           type: string
+ *           enum: [none, size, weight]
+ *           description: Type of options for the item
+ *           example: "size"
+ *         options:
+ *           type: array
+ *           description: Available options for the item
+ *           items:
+ *             type: object
+ *             properties:
+ *               _id:
+ *                 type: string
+ *                 description: Option ID
+ *                 example: "507f1f77bcf86cd799439014"
+ *               value:
+ *                 type: string
+ *                 description: Option value (e.g., "Small", "Large", "500g")
+ *                 example: "Large"
+ *               price:
+ *                 type: number
+ *                 description: Price for this option
+ *                 example: 35.99
+ *               order:
+ *                 type: number
+ *                 description: Display order
+ *                 example: 1
  *         prepTime:
  *           type: string
  *           nullable: true

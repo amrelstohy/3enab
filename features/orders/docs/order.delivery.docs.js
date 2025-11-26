@@ -36,6 +36,27 @@
  *           type: array
  *           items:
  *             type: object
+ *             properties:
+ *               item:
+ *                 type: object
+ *                 description: Item details
+ *               quantity:
+ *                 type: number
+ *                 description: Item quantity
+ *               unitPrice:
+ *                 type: number
+ *                 description: Unit price at time of order
+ *               totalPrice:
+ *                 type: number
+ *                 description: Total price for this item
+ *               optionId:
+ *                 type: string
+ *                 nullable: true
+ *                 description: ID of the selected item option
+ *               optionValue:
+ *                 type: string
+ *                 nullable: true
+ *                 description: Value of the selected option (e.g., "Large", "1kg")
  *         address:
  *           type: object
  *           properties:
