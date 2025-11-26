@@ -247,11 +247,35 @@ const notifyOrderStatusUpdate = (io, userId, order, deliveryOrder = null) => {
 };
 
 /**
- * Emit order accepted to delivery
+ * Emit order accepted notification
  * @param {Object} io - Socket.IO instance
+ * @param {String} userId - Customer ID
  * @param {Object} order - Order data
  */
-const notifyOrderAccepted = (io, order) => {
+const notifyOrderAccepted = (io, userId, order) => {
+  const orderId = order._id?.toString() || order.id?.toString();
+
+  // Notify customer via Socket & Push
+  emitToUser(io, userId, "order:accepted", {
+    message: "Your order has been accepted",
+    order,
+  });
+
+  sendNotificationToUser(
+    userId,
+    {
+      title: "تم قبول طلبك",
+      body: `تم قبول طلبك #${order.orderNumber || orderId} وجاري التحضير`,
+    },
+    {
+      type: "order:accepted",
+      orderId,
+      orderNumber: order.orderNumber?.toString() || "",
+    }
+  ).catch((err) =>
+    console.error("Failed to send acceptance notification to user:", err)
+  );
+
   // Only notify delivery if it's not a pickup order
   if (!order.isPickup) {
     emitToDelivery(io, "order:accepted", {
