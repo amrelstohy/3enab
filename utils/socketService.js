@@ -390,6 +390,12 @@ const notifyOrderDelivered = (io, userId, vendorId, order) => {
     order,
   });
 
+  // Notify vendor via Socket & Push
+  emitToVendor(io, vendorId, "order:delivered", {
+    message: "Order has been delivered",
+    order,
+  });
+
   sendNotificationToUser(
     userId,
     {
@@ -404,12 +410,6 @@ const notifyOrderDelivered = (io, userId, vendorId, order) => {
   ).catch((err) =>
     console.error("Failed to send delivery notification to user:", err)
   );
-
-  // Notify vendor via Socket & Push
-  emitToVendor(io, vendorId, "order:delivered", {
-    message: "Order has been delivered",
-    order,
-  });
 
   sendNotificationToVendor(
     vendorId,
