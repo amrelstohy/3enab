@@ -509,8 +509,8 @@ const updateDeliveryOrderStatus = async (
       // Special notification when order is delivered
       notifyOrderDelivered(
         io,
-        order.user.toString(),
-        order.vendor.toString(),
+        order.user._id.toString(),
+        order.vendor._id.toString(),
         userVendorSanitized
       );
     } else {
