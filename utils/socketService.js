@@ -391,7 +391,7 @@ const notifyOrderDelivered = (io, userId, vendorId, order) => {
   });
 
   // Notify vendor via Socket & Push
-  emitToVendor(io, vendorId, "order:delivered", {
+  emitToVendor(io, vendorId, "order:status-updated", {
     message: "Order has been delivered",
     order,
   });

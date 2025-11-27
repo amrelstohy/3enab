@@ -515,7 +515,7 @@ const updateDeliveryOrderStatus = async (
       // General status update notification
       notifyOrderStatusUpdate(
         io,
-        order.user.toString(),
+        order.user._id.toString(),
         userVendorSanitized,
         deliveryOrder
       );
