@@ -256,7 +256,7 @@ const notifyOrderAccepted = (io, userId, order) => {
   const orderId = order._id?.toString() || order.id?.toString();
 
   // Notify customer via Socket & Push
-  emitToUser(io, userId, "order:accepted", {
+  emitToUser(io, userId, "order:status-updated", {
     message: "Your order has been accepted",
     order,
   });
@@ -278,7 +278,7 @@ const notifyOrderAccepted = (io, userId, order) => {
 
   // Only notify delivery if it's not a pickup order
   if (!order.isPickup) {
-    emitToDelivery(io, "order:accepted", {
+    emitToDelivery(io, "order:new-delivery", {
       message: "New order available for delivery",
       order,
     });
@@ -438,7 +438,7 @@ const notifyPreparingOrder = (io, order) => {
     const orderId = order._id?.toString() || order.id?.toString();
 
     // Send via Socket.IO
-    emitToDelivery(io, "order:preparing", {
+    emitToDelivery(io, "order:new-delivery", {
       message: "New order is being prepared and ready for pickup",
       order,
     });
