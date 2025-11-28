@@ -283,6 +283,21 @@ const notifyOrderAccepted = (io, userId, order, deliveryOrder = null) => {
       message: "New order available for delivery",
       order: orderForDelivery,
     });
+
+    // Send push notification to all delivery drivers
+    sendNotificationToAllDelivery(
+      {
+        title: "طلب جديد للتوصيل",
+        body: `طلب جديد #${order.orderNumber || orderId} متاح للتوصيل`,
+      },
+      {
+        type: "order:new-delivery",
+        orderId,
+        orderNumber: order.orderNumber?.toString() || "",
+      }
+    ).catch((err) =>
+      console.error("Failed to send new delivery notification:", err)
+    );
   }
 };
 
