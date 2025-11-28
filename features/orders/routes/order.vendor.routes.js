@@ -9,7 +9,6 @@ router.get("/", orderController.getVendorOrders);
 router.get(
   "/:orderId",
   isResourceExists(Order, "orderId"),
-  checkOwnerShip(Order, "vendor"),
   orderController.getVendorOrder
 );
 router.patch(
