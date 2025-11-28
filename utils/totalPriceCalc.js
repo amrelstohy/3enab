@@ -1,8 +1,84 @@
 const Item = require("../features/items/item.model");
+const Vendor = require("../features/vendors/vendor.model");
 const { NotFoundError, BadRequestError } = require("./errors");
 const { validateCoupon } = require("./couponValidator");
 const { applyCoupon } = require("./applyCoupon");
 const DeliveryArea = require("../features/deliveryArea/deliveryArea.model");
+
+/**
+ * Check if vendor is currently open based on working hours (Egypt timezone)
+ * @param {Object} vendor - Vendor document
+ * @returns {Object} { isOpen: Boolean, message: String }
+ */
+const checkVendorIsOpen = (vendor) => {
+  if (!vendor.workingHours) {
+    return { isOpen: true, message: null };
+  }
+
+  const { open, close, days } = vendor.workingHours;
+
+  // Get current time in Egypt timezone
+  const egyptTime = new Date().toLocaleString("en-US", {
+    timeZone: "Africa/Cairo",
+  });
+  const now = new Date(egyptTime);
+
+  // Get current day name
+  const dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const currentDay = dayNames[now.getDay()];
+
+  // Check if current day is a working day
+  if (days && days.length > 0 && !days.includes(currentDay)) {
+    return {
+      isOpen: false,
+      message: `المتجر مغلق اليوم (${currentDay})`,
+    };
+  }
+
+  // Parse open and close times
+  const [openHour, openMinute] = open.split(":").map(Number);
+  const [closeHour, closeMinute] = close.split(":").map(Number);
+
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+
+  // Convert to minutes for easier comparison
+  const currentTimeInMinutes = currentHour * 60 + currentMinute;
+  const openTimeInMinutes = openHour * 60 + openMinute;
+  const closeTimeInMinutes = closeHour * 60 + closeMinute;
+
+  // Handle overnight hours (e.g., open: 22:00, close: 02:00)
+  if (closeTimeInMinutes < openTimeInMinutes) {
+    // Overnight case
+    if (
+      currentTimeInMinutes >= openTimeInMinutes ||
+      currentTimeInMinutes < closeTimeInMinutes
+    ) {
+      return { isOpen: true, message: null };
+    }
+  } else {
+    // Normal case
+    if (
+      currentTimeInMinutes >= openTimeInMinutes &&
+      currentTimeInMinutes < closeTimeInMinutes
+    ) {
+      return { isOpen: true, message: null };
+    }
+  }
+
+  return {
+    isOpen: false,
+    message: `المتجر مغلق الآن. ساعات العمل: ${open} - ${close}`,
+  };
+};
 
 /**
  * Calculate total price of cart items
@@ -58,6 +134,17 @@ const totalPriceCalc = async (
 
   const vendorId = vendorIds.values().next().value;
   result.vendor = vendorId;
+
+  // Check if vendor is open
+  const vendor = await Vendor.findById(vendorId);
+  if (!vendor) {
+    throw new NotFoundError("Vendor not found");
+  }
+
+  const vendorStatus = checkVendorIsOpen(vendor);
+  if (!vendorStatus.isOpen) {
+    throw new BadRequestError(vendorStatus.message);
+  }
 
   let subtotal = 0;
   for (const item of items) {
