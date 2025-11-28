@@ -299,7 +299,12 @@ const updateOrderStatus = async (user, order, status, io = null) => {
       );
     } else if (status === "preparing" && previousStatus === "pending") {
       // Vendor accepted the order and started preparing
-      notifyOrderAccepted(io, order.user.toString(), sanitizedOrder);
+      notifyOrderAccepted(
+        io,
+        order.user.toString(),
+        sanitizedOrder,
+        deliveryOrder
+      );
     } else if (status === "preparing") {
       // Order is already preparing, just update status
       notifyOrderStatusUpdate(
