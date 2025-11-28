@@ -248,7 +248,7 @@ const updateOrderStatus = async (user, order, status, io = null) => {
     throw new BadRequestError("Cannot change status of delivered order");
   }
 
-  if (order.status === "completed" || order.status === "received_by_customer") {
+  if (order.status === "received_by_customer") {
     throw new BadRequestError("Cannot change status of completed order");
   }
 
