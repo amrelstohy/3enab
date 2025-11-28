@@ -252,7 +252,7 @@ const notifyOrderStatusUpdate = (io, userId, order, deliveryOrder = null) => {
  * @param {String} userId - Customer ID
  * @param {Object} order - Order data
  */
-const notifyOrderAccepted = (io, userId, order) => {
+const notifyOrderAccepted = (io, userId, order, deliveryOrder = null) => {
   const orderId = order._id?.toString() || order.id?.toString();
 
   // Notify customer via Socket & Push
@@ -278,9 +278,10 @@ const notifyOrderAccepted = (io, userId, order) => {
 
   // Only notify delivery if it's not a pickup order
   if (!order.isPickup) {
+    const orderForDelivery = deliveryOrder || order;
     emitToDelivery(io, "order:new-delivery", {
       message: "New order available for delivery",
-      order,
+      order: orderForDelivery,
     });
   }
 };
