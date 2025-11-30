@@ -28,6 +28,7 @@ const sanitizeOrder = (order) => {
     paymentMethod: order.paymentMethod,
     isPickup: order.isPickup || false,
     notes: order.notes || null,
+    rejectionReason: order.rejectionReason || null,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };

@@ -1,22 +1,22 @@
-const mongoose = require("mongoose");
-const Counter = require("../counters/counter.model");
+const mongoose = require('mongoose');
+const Counter = require('../counters/counter.model');
 
 const orderStatus = [
-  "pending",
-  "preparing",
-  "out_for_delivery",
-  "delivered",
-  "completed",
-  "received_by_customer",
-  "cancelled",
-  "canceled_by_vendor",
+  'pending',
+  'preparing',
+  'out_for_delivery',
+  'delivered',
+  'completed',
+  'received_by_customer',
+  'cancelled',
+  'canceled_by_vendor',
 ];
 
 const orderItemSchema = new mongoose.Schema(
   {
     item: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Item",
+      ref: 'Item',
       required: true,
     },
     optionId: {
@@ -55,23 +55,23 @@ const orderSchema = new mongoose.Schema(
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
       index: true,
     },
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Vendor",
+      ref: 'Vendor',
       required: true,
     },
     assignedDriver: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       default: null,
     },
     items: {
       type: [orderItemSchema],
-      validate: [(val) => val.length > 0, "Order must have at least one item."],
+      validate: [(val) => val.length > 0, 'Order must have at least one item.'],
     },
     subtotal: {
       type: Number,
@@ -95,23 +95,23 @@ const orderSchema = new mongoose.Schema(
     },
     appliedCoupon: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Coupon",
+      ref: 'Coupon',
       default: null,
     },
     status: {
       type: String,
       enum: orderStatus,
-      default: "pending",
+      default: 'pending',
     },
     address: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Address",
+      ref: 'Address',
       default: null,
     },
     paymentMethod: {
       type: String,
-      enum: ["cash", "credit_card", "wallet"],
-      default: "cash",
+      enum: ['cash', 'credit_card', 'wallet'],
+      default: 'cash',
     },
     isPickup: {
       type: Boolean,
@@ -122,16 +122,22 @@ const orderSchema = new mongoose.Schema(
       trim: true,
       maxlength: 500,
     },
+    rejectionReason: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-orderSchema.pre("validate", async function (next) {
+orderSchema.pre('validate', async function (next) {
   if (this.isNew) {
     const counter = await Counter.findOneAndUpdate(
-      { name: "orderNumber", vendor: this.vendor },
+      { name: 'orderNumber', vendor: this.vendor },
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
@@ -141,5 +147,5 @@ orderSchema.pre("validate", async function (next) {
   next();
 });
 
-const Order = mongoose.model("Order", orderSchema);
+const Order = mongoose.model('Order', orderSchema);
 module.exports = { Order, orderStatus };
