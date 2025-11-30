@@ -751,7 +751,12 @@ const getDriverOrders = async (driverId, statuses = []) => {
 };
 
 // Cancel order by vendor
-const cancelOrderByVendor = async (user, order, io = null) => {
+const cancelOrderByVendor = async (
+  user,
+  order,
+  rejectionReason = null,
+  io = null
+) => {
   // Verify that the order belongs to a vendor owned by this user
   const vendor = await Vendor.findOne({
     _id: order.vendor,
@@ -768,6 +773,9 @@ const cancelOrderByVendor = async (user, order, io = null) => {
   }
 
   order.status = 'canceled_by_vendor';
+  if (rejectionReason) {
+    order.rejectionReason = rejectionReason;
+  }
   await order.save();
   await order.populate([
     {

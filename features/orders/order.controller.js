@@ -1,18 +1,18 @@
-const orderService = require("./order.service");
+const orderService = require('./order.service');
 const {
   getIO,
   notifyNewOrder,
   notifyOrderStatusUpdate,
   notifyOrderAccepted,
   notifyOrderCancelled,
-} = require("../../utils/socketService");
+} = require('../../utils/socketService');
 
 // POST /preview
 const previewOrder = async (req, res) => {
   const pricing = await orderService.previewOrder(req.user, req.body);
   res.status(200).json({
-    status: "success",
-    message: "Order preview calculated successfully",
+    status: 'success',
+    message: 'Order preview calculated successfully',
     data: pricing,
   });
 };
@@ -22,8 +22,8 @@ const createOrder = async (req, res) => {
   const io = getIO(req);
   const order = await orderService.createOrder(req.user, req.body, io);
   res.status(201).json({
-    status: "success",
-    message: "Order created successfully",
+    status: 'success',
+    message: 'Order created successfully',
     data: { order },
   });
 };
@@ -41,8 +41,8 @@ const getOrders = async (req, res) => {
   }
   const orders = await orderService.getOrders(req.user, statuses);
   res.status(200).json({
-    status: "success",
-    message: "Orders fetched successfully",
+    status: 'success',
+    message: 'Orders fetched successfully',
     data: { orders },
   });
 };
@@ -51,8 +51,8 @@ const getOrders = async (req, res) => {
 const getOrder = async (req, res) => {
   const order = await orderService.getOrder(req.order);
   res.status(200).json({
-    status: "success",
-    message: "Order fetched successfully",
+    status: 'success',
+    message: 'Order fetched successfully',
     data: { order },
   });
 };
@@ -61,8 +61,8 @@ const getOrder = async (req, res) => {
 const getOrderById = async (req, res) => {
   const order = await orderService.getOrderById(req.params.id, req.user);
   res.status(200).json({
-    status: "success",
-    message: "Order fetched successfully",
+    status: 'success',
+    message: 'Order fetched successfully',
     data: { order },
   });
 };
@@ -72,8 +72,8 @@ const deleteOrder = async (req, res) => {
   const io = getIO(req);
   const order = await orderService.cancelOrder(req.order, io);
   res.status(200).json({
-    status: "success",
-    message: "Order cancelled successfully",
+    status: 'success',
+    message: 'Order cancelled successfully',
     data: { order },
   });
 };
@@ -95,8 +95,8 @@ const getVendorOrders = async (req, res) => {
     req.query.vendorId
   );
   res.status(200).json({
-    status: "success",
-    message: "Orders fetched successfully",
+    status: 'success',
+    message: 'Orders fetched successfully',
     data: { orders },
   });
 };
@@ -105,8 +105,8 @@ const getVendorOrders = async (req, res) => {
 const getVendorOrder = async (req, res) => {
   const order = await orderService.getVendorOrder(req.order);
   res.status(200).json({
-    status: "success",
-    message: "Order fetched successfully",
+    status: 'success',
+    message: 'Order fetched successfully',
     data: { order },
   });
 };
@@ -122,8 +122,8 @@ const updateOrderStatus = async (req, res) => {
     io
   );
   res.status(200).json({
-    status: "success",
-    message: "Order status updated successfully",
+    status: 'success',
+    message: 'Order status updated successfully',
     data: { order },
   });
 };
@@ -131,10 +131,16 @@ const updateOrderStatus = async (req, res) => {
 // DELETE /:orderId (vendor) - Cancel order by vendor
 const cancelOrderByVendor = async (req, res) => {
   const io = getIO(req);
-  const order = await orderService.cancelOrderByVendor(req.user, req.order, io);
+  const { rejectionReason } = req.body;
+  const order = await orderService.cancelOrderByVendor(
+    req.user,
+    req.order,
+    rejectionReason,
+    io
+  );
   res.status(200).json({
-    status: "success",
-    message: "Order cancelled successfully by vendor",
+    status: 'success',
+    message: 'Order cancelled successfully by vendor',
     data: { order },
   });
 };
@@ -152,8 +158,8 @@ const getDeliveryOrders = async (req, res) => {
   }
   const orders = await orderService.getDeliveryOrders(statuses);
   res.status(200).json({
-    status: "success",
-    message: "Delivery orders fetched successfully",
+    status: 'success',
+    message: 'Delivery orders fetched successfully',
     data: { orders },
   });
 };
@@ -167,8 +173,8 @@ const assignDriver = async (req, res) => {
     io
   );
   res.status(200).json({
-    status: "success",
-    message: "Driver assigned successfully",
+    status: 'success',
+    message: 'Driver assigned successfully',
     data: { order },
   });
 };
@@ -184,8 +190,8 @@ const updateDeliveryStatus = async (req, res) => {
     io
   );
   res.status(200).json({
-    status: "success",
-    message: "Order status updated successfully",
+    status: 'success',
+    message: 'Order status updated successfully',
     data: { order },
   });
 };
@@ -203,8 +209,8 @@ const getMyDeliveryOrders = async (req, res) => {
   }
   const orders = await orderService.getDriverOrders(req.user._id, statuses);
   res.status(200).json({
-    status: "success",
-    message: "Your delivery orders fetched successfully",
+    status: 'success',
+    message: 'Your delivery orders fetched successfully',
     data: { orders },
   });
 };
