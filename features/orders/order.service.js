@@ -1,14 +1,14 @@
-const { Order, orderStatus } = require("./order.model");
-const Address = require("../addresses/address.model");
-const Vendor = require("../vendors/vendor.model");
-const Coupon = require("../coupons/coupon.model");
-const totalPriceCalc = require("../../utils/totalPriceCalc");
+const { Order, orderStatus } = require('./order.model');
+const Address = require('../addresses/address.model');
+const Vendor = require('../vendors/vendor.model');
+const Coupon = require('../coupons/coupon.model');
+const totalPriceCalc = require('../../utils/totalPriceCalc');
 const {
   NotFoundError,
   UnauthorizedError,
   BadRequestError,
-} = require("../../utils/errors");
-const { sanitizeOrder, sanitizeOrders } = require("./order.sanitizers");
+} = require('../../utils/errors');
+const { sanitizeOrder, sanitizeOrders } = require('./order.sanitizers');
 const {
   notifyNewOrder,
   notifyOrderStatusUpdate,
@@ -17,7 +17,7 @@ const {
   notifyDriverAssigned,
   notifyOrderDelivered,
   notifyPreparingOrder,
-} = require("../../utils/socketService");
+} = require('../../utils/socketService');
 
 // Preview order pricing without persisting
 const previewOrder = async (
@@ -25,19 +25,19 @@ const previewOrder = async (
   { cartItems, addressId, couponCode, isPickup = false }
 ) => {
   if (!Array.isArray(cartItems) || cartItems.length === 0) {
-    throw new BadRequestError("Cart items are required");
+    throw new BadRequestError('Cart items are required');
   }
 
   let deliveryAreaId = null;
 
   if (!isPickup) {
     if (!addressId) {
-      throw new BadRequestError("Address is required for delivery orders");
+      throw new BadRequestError('Address is required for delivery orders');
     }
     const address = await Address.findById(addressId).lean();
-    if (!address) throw new NotFoundError("Address not found");
+    if (!address) throw new NotFoundError('Address not found');
     if (address.user.toString() !== user._id.toString()) {
-      throw new UnauthorizedError("You are not allowed to use this address");
+      throw new UnauthorizedError('You are not allowed to use this address');
     }
     deliveryAreaId = address?.deliveryArea?.toString() || null;
   }
@@ -60,8 +60,8 @@ const createOrder = async (
     cartItems,
     addressId,
     couponCode,
-    paymentMethod = "cash",
-    notes = "",
+    paymentMethod = 'cash',
+    notes = '',
     isPickup = false,
   },
   io = null
@@ -82,7 +82,7 @@ const createOrder = async (
     deliveryFee: pricing.deliveryFee,
     total: pricing.total,
     appliedCoupon: null,
-    status: "pending",
+    status: 'pending',
     address: addressId,
     paymentMethod,
     isPickup,
@@ -102,7 +102,27 @@ const createOrder = async (
   }
 
   const order = await Order.create(orderData);
-  order.populate("items.item", "name imagePath");
+  await order.populate([
+    {
+      path: 'user',
+      select: 'name phone',
+    },
+    {
+      path: 'vendor',
+      select: 'name logoPath',
+    },
+    {
+      path: 'address',
+    },
+    {
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
+    },
+  ]);
   const sanitizedOrder = sanitizeOrder(order);
 
   // Notify vendor about new order
@@ -120,7 +140,25 @@ const getOrders = async (user, statuses = []) => {
     filter.status = { $in: statuses };
   }
   const orders = await Order.find(filter)
-    .populate("items.item", "name imagePath")
+    .populate({
+      path: 'user',
+      select: 'name phone',
+    })
+    .populate({
+      path: 'vendor',
+      select: 'name logoPath',
+    })
+    .populate({
+      path: 'address',
+    })
+    .populate({
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
+    })
     .sort({ createdAt: -1 })
     .lean();
   return sanitizeOrders(orders);
@@ -128,7 +166,27 @@ const getOrders = async (user, statuses = []) => {
 
 // Get single order (order provided by middleware)
 const getOrder = async (order) => {
-  await order.populate("items.item", "name imagePath");
+  await order.populate([
+    {
+      path: 'user',
+      select: 'name phone',
+    },
+    {
+      path: 'vendor',
+      select: 'name logoPath',
+    },
+    {
+      path: 'address',
+    },
+    {
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
+    },
+  ]);
   return sanitizeOrder(order);
 };
 
@@ -136,42 +194,66 @@ const getOrder = async (order) => {
 const getOrderById = async (orderId, user) => {
   const order = await Order.findById(orderId)
     .populate({
-      path: "user",
-      select: "name phone",
+      path: 'user',
+      select: 'name phone',
     })
     .populate({
-      path: "vendor",
-      select: "name logoPath",
+      path: 'vendor',
+      select: 'name logoPath',
     })
     .populate({
-      path: "address",
+      path: 'address',
     })
     .populate({
-      path: "items.item",
-      select: "name imagePath",
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
     })
     .lean();
 
   if (!order) {
-    throw new NotFoundError("Order not found");
+    throw new NotFoundError('Order not found');
   }
 
   // Delivery users can see orders that are ready for delivery
-  if (user.type === "delivery") {
+  if (user.type === 'delivery') {
     return sanitizeOrder(order);
   }
 
-  throw new UnauthorizedError("You are not allowed to view this order");
+  throw new UnauthorizedError('You are not allowed to view this order');
 };
 
 // Cancel order (instead of physical delete)
 const cancelOrder = async (order, io = null) => {
-  if (order.status !== "pending") {
-    throw new BadRequestError("Only pending orders can be cancelled");
+  if (order.status !== 'pending') {
+    throw new BadRequestError('Only pending orders can be cancelled');
   }
-  order.status = "cancelled";
+  order.status = 'cancelled';
   await order.save();
-  order.populate("items.item", "name imagePath");
+  await order.populate([
+    {
+      path: 'user',
+      select: 'name phone',
+    },
+    {
+      path: 'vendor',
+      select: 'name logoPath',
+    },
+    {
+      path: 'address',
+    },
+    {
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
+    },
+  ]);
   const sanitizedOrder = sanitizeOrder(order);
 
   // Notify vendor about cancellation
@@ -190,7 +272,7 @@ const getVendorOrders = async (user, statuses = [], vendorId = null) => {
     // Filter by specific vendor
     const vendor = await Vendor.findById(vendorId).lean();
     if (!vendor) {
-      throw new NotFoundError("Vendor not found");
+      throw new NotFoundError('Vendor not found');
     }
     if (vendor.owner.toString() !== user._id.toString()) {
       throw new UnauthorizedError(
@@ -200,7 +282,7 @@ const getVendorOrders = async (user, statuses = [], vendorId = null) => {
     filter.vendor = vendorId;
   } else {
     // Get all vendors owned by this user
-    const vendors = await Vendor.find({ owner: user._id }).select("_id").lean();
+    const vendors = await Vendor.find({ owner: user._id }).select('_id').lean();
     const vendorIds = vendors.map((v) => v._id);
 
     if (vendorIds.length === 0) {
@@ -215,7 +297,25 @@ const getVendorOrders = async (user, statuses = [], vendorId = null) => {
   }
 
   const orders = await Order.find(filter)
-    .populate("items.item", "name imagePath")
+    .populate({
+      path: 'user',
+      select: 'name phone',
+    })
+    .populate({
+      path: 'vendor',
+      select: 'name logoPath',
+    })
+    .populate({
+      path: 'address',
+    })
+    .populate({
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
+    })
     .sort({ createdAt: -1 })
     .lean();
   return sanitizeOrders(orders);
@@ -223,7 +323,27 @@ const getVendorOrders = async (user, statuses = [], vendorId = null) => {
 
 // Get single order for vendor (order provided by middleware)
 const getVendorOrder = async (order) => {
-  await order.populate("items.item", "name imagePath");
+  await order.populate([
+    {
+      path: 'user',
+      select: 'name phone',
+    },
+    {
+      path: 'vendor',
+      select: 'name logoPath',
+    },
+    {
+      path: 'address',
+    },
+    {
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
+    },
+  ]);
   return sanitizeOrder(order);
 };
 
@@ -236,24 +356,24 @@ const updateOrderStatus = async (user, order, status, io = null) => {
   }).lean();
 
   if (!vendor) {
-    throw new UnauthorizedError("You are not allowed to update this order");
+    throw new UnauthorizedError('You are not allowed to update this order');
   }
 
   if (!orderStatus.includes(status)) {
-    throw new BadRequestError("Invalid status");
+    throw new BadRequestError('Invalid status');
   }
 
   // Prevent status changes to certain statuses if already in a later stage
-  if (order.status === "delivered") {
-    throw new BadRequestError("Cannot change status of delivered order");
+  if (order.status === 'delivered') {
+    throw new BadRequestError('Cannot change status of delivered order');
   }
 
-  if (order.status === "received_by_customer") {
-    throw new BadRequestError("Cannot change status of completed order");
+  if (order.status === 'received_by_customer') {
+    throw new BadRequestError('Cannot change status of completed order');
   }
 
-  if (order.status === "cancelled" || order.status === "canceled_by_vendor") {
-    throw new BadRequestError("Cannot change status of cancelled order");
+  if (order.status === 'cancelled' || order.status === 'canceled_by_vendor') {
+    throw new BadRequestError('Cannot change status of cancelled order');
   }
 
   const previousStatus = order.status;
@@ -261,7 +381,27 @@ const updateOrderStatus = async (user, order, status, io = null) => {
   await order.save();
 
   // Populate items for all orders (user, vendor, and delivery)
-  await order.populate("items.item", "name imagePath");
+  await order.populate([
+    {
+      path: 'user',
+      select: 'name phone',
+    },
+    {
+      path: 'vendor',
+      select: 'name logoPath',
+    },
+    {
+      path: 'address',
+    },
+    {
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
+    },
+  ]);
   const sanitizedOrder = sanitizeOrder(order);
 
   // Notify user about status update
@@ -271,33 +411,37 @@ const updateOrderStatus = async (user, order, status, io = null) => {
     if (!order.isPickup) {
       const fullOrder = await Order.findById(order._id)
         .populate({
-          path: "user",
-          select: "name phone",
+          path: 'user',
+          select: 'name phone',
         })
         .populate({
-          path: "vendor",
-          select: "name logoPath",
+          path: 'vendor',
+          select: 'name logoPath',
         })
         .populate({
-          path: "address",
+          path: 'address',
         })
         .populate({
-          path: "items.item",
-          select: "name imagePath",
+          path: 'items.item',
+          select: 'name imagePath category',
+          populate: {
+            path: 'category',
+            select: 'name',
+          },
         })
         .lean();
       deliveryOrder = sanitizeOrder(fullOrder);
     }
 
     // If order is delivered, send delivery notification
-    if (status === "delivered") {
+    if (status === 'delivered') {
       notifyOrderDelivered(
         io,
         order.user.toString(),
         order.vendor.toString(),
         sanitizedOrder
       );
-    } else if (status === "preparing" && previousStatus === "pending") {
+    } else if (status === 'preparing' && previousStatus === 'pending') {
       // Vendor accepted the order and started preparing
       notifyOrderAccepted(
         io,
@@ -305,7 +449,7 @@ const updateOrderStatus = async (user, order, status, io = null) => {
         sanitizedOrder,
         deliveryOrder
       );
-    } else if (status === "preparing") {
+    } else if (status === 'preparing') {
       // Order is already preparing, just update status
       notifyOrderStatusUpdate(
         io,
@@ -326,7 +470,7 @@ const updateOrderStatus = async (user, order, status, io = null) => {
     }
 
     // If vendor cancels order
-    if (status === "canceled_by_vendor") {
+    if (status === 'canceled_by_vendor') {
       notifyOrderCancelled(io, order.vendor.toString(), sanitizedOrder);
     }
   }
@@ -341,7 +485,7 @@ const getDeliveryOrders = async (statuses = []) => {
   };
 
   // Only allow specific statuses for delivery
-  const allowedStatuses = ["preparing", "out_for_delivery", "delivered"];
+  const allowedStatuses = ['preparing', 'out_for_delivery', 'delivered'];
 
   // If no statuses provided, use all allowed statuses
   if (statuses.length === 0) {
@@ -362,19 +506,23 @@ const getDeliveryOrders = async (statuses = []) => {
 
   const orders = await Order.find(filter)
     .populate({
-      path: "user",
-      select: "name phone",
+      path: 'user',
+      select: 'name phone',
     })
     .populate({
-      path: "vendor",
-      select: "name logoPath",
+      path: 'vendor',
+      select: 'name logoPath',
     })
     .populate({
-      path: "address",
+      path: 'address',
     })
     .populate({
-      path: "items.item",
-      select: "name imagePath",
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
     })
     .sort({ createdAt: -1 })
     .lean();
@@ -386,34 +534,38 @@ const getDeliveryOrders = async (statuses = []) => {
 const assignDeliveryDriver = async (order, driverId, io = null) => {
   if (order.isPickup) {
     throw new BadRequestError(
-      "Pickup orders do not require delivery assignment"
+      'Pickup orders do not require delivery assignment'
     );
   }
 
-  if (order.status !== "preparing" && order.status !== "out_for_delivery") {
-    throw new BadRequestError("Order is not ready for delivery assignment");
+  if (order.status !== 'preparing' && order.status !== 'out_for_delivery') {
+    throw new BadRequestError('Order is not ready for delivery assignment');
   }
 
   order.assignedDriver = driverId;
-  order.status = "out_for_delivery";
+  order.status = 'out_for_delivery';
   await order.save();
 
   // Populate for delivery (full data)
   await order.populate([
     {
-      path: "user",
-      select: "name phone",
+      path: 'user',
+      select: 'name phone',
     },
     {
-      path: "vendor",
-      select: "name logoPath",
+      path: 'vendor',
+      select: 'name logoPath',
     },
     {
-      path: "address",
+      path: 'address',
     },
     {
-      path: "items.item",
-      select: "name imagePath",
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
     },
   ]);
 
@@ -422,8 +574,23 @@ const assignDeliveryDriver = async (order, driverId, io = null) => {
   // Get order with items only for user/vendor
   const userVendorOrder = await Order.findById(order._id)
     .populate({
-      path: "items.item",
-      select: "name imagePath",
+      path: 'user',
+      select: 'name phone',
+    })
+    .populate({
+      path: 'vendor',
+      select: 'name logoPath',
+    })
+    .populate({
+      path: 'address',
+    })
+    .populate({
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
     })
     .lean();
   const userVendorSanitized = sanitizeOrder(userVendorOrder);
@@ -450,27 +617,27 @@ const updateDeliveryOrderStatus = async (
   io = null
 ) => {
   if (order.isPickup) {
-    throw new BadRequestError("Pickup orders cannot be updated by delivery");
+    throw new BadRequestError('Pickup orders cannot be updated by delivery');
   }
 
   // Delivery can only update to out_for_delivery or delivered
-  if (status !== "out_for_delivery" && status !== "delivered") {
+  if (status !== 'out_for_delivery' && status !== 'delivered') {
     throw new BadRequestError(
       "Delivery can only update status to 'out_for_delivery' or 'delivered'"
     );
   }
 
   // Prevent status changes if already delivered or cancelled
-  if (order.status === "delivered") {
-    throw new BadRequestError("Order is already delivered");
+  if (order.status === 'delivered') {
+    throw new BadRequestError('Order is already delivered');
   }
 
-  if (order.status === "completed" || order.status === "received_by_customer") {
-    throw new BadRequestError("Cannot update completed order");
+  if (order.status === 'completed' || order.status === 'received_by_customer') {
+    throw new BadRequestError('Cannot update completed order');
   }
 
-  if (order.status === "cancelled" || order.status === "canceled_by_vendor") {
-    throw new BadRequestError("Cannot update cancelled order");
+  if (order.status === 'cancelled' || order.status === 'canceled_by_vendor') {
+    throw new BadRequestError('Cannot update cancelled order');
   }
 
   order.status = status;
@@ -479,19 +646,23 @@ const updateDeliveryOrderStatus = async (
   // Populate for delivery (full data)
   await order.populate([
     {
-      path: "user",
-      select: "name phone",
+      path: 'user',
+      select: 'name phone',
     },
     {
-      path: "vendor",
-      select: "name logoPath",
+      path: 'vendor',
+      select: 'name logoPath',
     },
     {
-      path: "address",
+      path: 'address',
     },
     {
-      path: "items.item",
-      select: "name imagePath",
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
     },
   ]);
 
@@ -500,15 +671,30 @@ const updateDeliveryOrderStatus = async (
   // Get order with items only for user/vendor
   const userVendorOrder = await Order.findById(order._id)
     .populate({
-      path: "items.item",
-      select: "name imagePath",
+      path: 'user',
+      select: 'name phone',
+    })
+    .populate({
+      path: 'vendor',
+      select: 'name logoPath',
+    })
+    .populate({
+      path: 'address',
+    })
+    .populate({
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
     })
     .lean();
   const userVendorSanitized = sanitizeOrder(userVendorOrder);
 
   // Notify user, vendor, and delivery
   if (io) {
-    if (status === "delivered") {
+    if (status === 'delivered') {
       // Special notification when order is delivered
       notifyOrderDelivered(
         io,
@@ -540,19 +726,23 @@ const getDriverOrders = async (driverId, statuses = []) => {
 
   const orders = await Order.find(filter)
     .populate({
-      path: "user",
-      select: "name phone",
+      path: 'user',
+      select: 'name phone',
     })
     .populate({
-      path: "vendor",
-      select: "name logoPath",
+      path: 'vendor',
+      select: 'name logoPath',
     })
     .populate({
-      path: "address",
+      path: 'address',
     })
     .populate({
-      path: "items.item",
-      select: "name imagePath",
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
     })
     .sort({ createdAt: -1 })
     .lean();
@@ -569,17 +759,37 @@ const cancelOrderByVendor = async (user, order, io = null) => {
   }).lean();
 
   if (!vendor) {
-    throw new UnauthorizedError("You are not allowed to cancel this order");
+    throw new UnauthorizedError('You are not allowed to cancel this order');
   }
 
   // Vendor can only cancel pending orders
-  if (order.status !== "pending") {
-    throw new BadRequestError("Only pending orders can be cancelled");
+  if (order.status !== 'pending') {
+    throw new BadRequestError('Only pending orders can be cancelled');
   }
 
-  order.status = "canceled_by_vendor";
+  order.status = 'canceled_by_vendor';
   await order.save();
-  await order.populate("items.item", "name imagePath");
+  await order.populate([
+    {
+      path: 'user',
+      select: 'name phone',
+    },
+    {
+      path: 'vendor',
+      select: 'name logoPath',
+    },
+    {
+      path: 'address',
+    },
+    {
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
+    },
+  ]);
   const sanitizedOrder = sanitizeOrder(order);
 
   // Notify user about cancellation (vendor is cancelling)
