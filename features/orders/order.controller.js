@@ -114,11 +114,12 @@ const getVendorOrder = async (req, res) => {
 // PATCH /:orderId/status (vendor) - Update order status
 const updateOrderStatus = async (req, res) => {
   const io = getIO(req);
-  const { status } = req.body;
+  const { status, rejectionReason } = req.body;
   const order = await orderService.updateOrderStatus(
     req.user,
     req.order,
     status,
+    rejectionReason,
     io
   );
   res.status(200).json({

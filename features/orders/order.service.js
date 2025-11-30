@@ -19,6 +19,13 @@ const {
   notifyPreparingOrder,
 } = require('../../utils/socketService');
 
+// Helper to get ID string from populated object or ObjectId
+const getIdString = (obj) => {
+  if (!obj) return null;
+  if (obj._id) return obj._id.toString();
+  return obj.toString();
+};
+
 // Preview order pricing without persisting
 const previewOrder = async (
   user,
@@ -258,7 +265,7 @@ const cancelOrder = async (order, io = null) => {
 
   // Notify vendor about cancellation
   if (io) {
-    notifyOrderCancelled(io, order.vendor.toString(), sanitizedOrder);
+    notifyOrderCancelled(io, getIdString(order.vendor), sanitizedOrder);
   }
 
   return sanitizedOrder;
@@ -348,7 +355,13 @@ const getVendorOrder = async (order) => {
 };
 
 // Update order status (vendor can update status)
-const updateOrderStatus = async (user, order, status, io = null) => {
+const updateOrderStatus = async (
+  user,
+  order,
+  status,
+  rejectionReason = null,
+  io = null
+) => {
   // Verify that the order belongs to a vendor owned by this user
   const vendor = await Vendor.findOne({
     _id: order.vendor,
@@ -378,6 +391,12 @@ const updateOrderStatus = async (user, order, status, io = null) => {
 
   const previousStatus = order.status;
   order.status = status;
+
+  // Save rejection reason if vendor is canceling
+  if (status === 'canceled_by_vendor' && rejectionReason) {
+    order.rejectionReason = rejectionReason;
+  }
+
   await order.save();
 
   // Populate items for all orders (user, vendor, and delivery)
@@ -437,15 +456,15 @@ const updateOrderStatus = async (user, order, status, io = null) => {
     if (status === 'delivered') {
       notifyOrderDelivered(
         io,
-        order.user.toString(),
-        order.vendor.toString(),
+        getIdString(order.user),
+        getIdString(order.vendor),
         sanitizedOrder
       );
     } else if (status === 'preparing' && previousStatus === 'pending') {
       // Vendor accepted the order and started preparing
       notifyOrderAccepted(
         io,
-        order.user.toString(),
+        getIdString(order.user),
         sanitizedOrder,
         deliveryOrder
       );
@@ -453,7 +472,7 @@ const updateOrderStatus = async (user, order, status, io = null) => {
       // Order is already preparing, just update status
       notifyOrderStatusUpdate(
         io,
-        order.user.toString(),
+        getIdString(order.user),
         sanitizedOrder,
         deliveryOrder
       );
@@ -463,7 +482,7 @@ const updateOrderStatus = async (user, order, status, io = null) => {
       // Notify user, vendor, and delivery (with appropriate data for each)
       notifyOrderStatusUpdate(
         io,
-        order.user.toString(),
+        getIdString(order.user),
         sanitizedOrder,
         deliveryOrder
       );
@@ -471,7 +490,7 @@ const updateOrderStatus = async (user, order, status, io = null) => {
 
     // If vendor cancels order
     if (status === 'canceled_by_vendor') {
-      notifyOrderCancelled(io, order.vendor.toString(), sanitizedOrder);
+      notifyOrderCancelled(io, getIdString(order.vendor), sanitizedOrder);
     }
   }
 
@@ -599,7 +618,7 @@ const assignDeliveryDriver = async (order, driverId, io = null) => {
   if (io) {
     notifyOrderStatusUpdate(
       io,
-      order.user.toString(),
+      getIdString(order.user),
       userVendorSanitized,
       deliveryOrder
     );
@@ -698,15 +717,15 @@ const updateDeliveryOrderStatus = async (
       // Special notification when order is delivered
       notifyOrderDelivered(
         io,
-        order.user._id.toString(),
-        order.vendor._id.toString(),
+        getIdString(order.user),
+        getIdString(order.vendor),
         userVendorSanitized
       );
     } else {
       // General status update notification
       notifyOrderStatusUpdate(
         io,
-        order.user._id.toString(),
+        getIdString(order.user),
         userVendorSanitized,
         deliveryOrder
       );
@@ -802,7 +821,7 @@ const cancelOrderByVendor = async (
 
   // Notify user about cancellation (vendor is cancelling)
   if (io) {
-    notifyOrderCancelled(io, order.vendor.toString(), sanitizedOrder);
+    notifyOrderCancelled(io, getIdString(order.vendor), sanitizedOrder);
   }
 
   return sanitizedOrder;
