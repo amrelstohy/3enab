@@ -1,8 +1,8 @@
-const Item = require("./item.model");
-const { NotFoundError, ConflictError } = require("../../utils/errors");
-const { sanitizeItem, sanitizeItems } = require("./item.sanitizers");
-const { removeImage } = require("../../utils/image");
-const path = require("path");
+const Item = require('./item.model');
+const { NotFoundError, ConflictError } = require('../../utils/errors');
+const { sanitizeItem, sanitizeItems } = require('./item.sanitizers');
+const { removeImage } = require('../../utils/image');
+const path = require('path');
 
 // Create item
 const createItem = async (itemData, menuCategoryId, vendorId) => {
@@ -15,7 +15,7 @@ const createItem = async (itemData, menuCategoryId, vendorId) => {
     name,
     description,
     basePrice,
-    optionType: optionType || "none",
+    optionType: optionType || 'none',
     options: options || [],
     category: menuCategoryId,
     order: itemNum + 1,
@@ -30,7 +30,7 @@ const createItem = async (itemData, menuCategoryId, vendorId) => {
 // Upload item image
 const uploadItemImage = async (item, file) => {
   item.imagePath = file.webPath || null;
-  item.markModified("imagePath");
+  item.markModified('imagePath');
   await item.save();
   return sanitizeItem(item);
 };
@@ -38,9 +38,9 @@ const uploadItemImage = async (item, file) => {
 // Get item image
 const getItemImage = async (item) => {
   if (!item.imagePath) {
-    throw new NotFoundError("this item has no image");
+    throw new NotFoundError('this item has no image');
   }
-  return path.join(__dirname, "..", "..", item.imagePath);
+  return path.join(__dirname, '..', '..', item.imagePath);
 };
 
 // Update item
@@ -94,14 +94,14 @@ const getItemById = async (item) => {
 const updateOrder = async (menuCategory, orderedArray) => {
   const allItems = await Item.find({
     category: menuCategory._id,
-  }).select("_id");
+  }).select('_id');
 
   const allIds = allItems.map((item) => item._id.toString());
 
   const missingIds = allIds.filter((id) => !orderedArray.includes(id));
 
   if (missingIds.length > 0) {
-    throw new NotFoundError(`Missing items: ${missingIds.join(", ")}`);
+    throw new NotFoundError(`Missing items: ${missingIds.join(', ')}`);
   }
 
   await Item.bulkWrite(
@@ -113,14 +113,14 @@ const updateOrder = async (menuCategory, orderedArray) => {
     }))
   );
 
-  const updated = await Item.find({ category: menuCategory._id }).sort("order");
+  const updated = await Item.find({ category: menuCategory._id }).sort('order');
   return sanitizeItems(updated);
 };
 
 // Update item availability
 const updateAvailability = async (item, isAvailable) => {
   if (item.isAvailable === isAvailable) {
-    throw new ConflictError("Item availability is already set to this value");
+    throw new ConflictError('Item availability is already set to this value');
   }
   item.isAvailable = isAvailable;
   await item.save();
@@ -130,7 +130,7 @@ const updateAvailability = async (item, isAvailable) => {
 // Update item active status
 const updateActive = async (item, isActive) => {
   if (item.isActive === isActive) {
-    throw new ConflictError("Item active status is already set to this value");
+    throw new ConflictError('Item active status is already set to this value');
   }
   item.isActive = isActive;
   await item.save();
@@ -141,11 +141,13 @@ const updateActive = async (item, isActive) => {
 const updateDiscount = async (item, discountData) => {
   const { type, value, startDate, endDate, isActive } = discountData;
 
-  item.discount.type = type;
-  item.discount.value = value;
-  item.discount.startDate = startDate;
-  item.discount.endDate = endDate;
-  item.discount.isActive = isActive;
+  item.discount = {
+    type,
+    value,
+    startDate,
+    endDate,
+    isActive,
+  };
 
   await item.save();
   return sanitizeItem(item);
