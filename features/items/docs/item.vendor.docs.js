@@ -997,6 +997,152 @@
 
 /**
  * @swagger
+ * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/discount:
+ *   patch:
+ *     summary: Apply discount to all vendor items
+ *     description: Apply the same discount to all items belonging to the vendor (Vendor only)
+ *     tags: ["Items - Vendor"]
+ *     parameters:
+ *       - name: Authorization
+ *         in: header
+ *         required: true
+ *         description: JWT access token
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: vendorId
+ *         in: path
+ *         required: true
+ *         description: Vendor ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439010"
+ *       - name: menuCategoryId
+ *         in: path
+ *         required: true
+ *         description: Category ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439012"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateDiscountRequest'
+ *           examples:
+ *             percentage_discount:
+ *               summary: Percentage discount for all items
+ *               value:
+ *                 type: "percentage"
+ *                 value: 20
+ *                 startDate: "2024-01-01T00:00:00.000Z"
+ *                 endDate: "2024-12-31T23:59:59.999Z"
+ *                 isActive: true
+ *             fixed_discount:
+ *               summary: Fixed amount discount for all items
+ *               value:
+ *                 type: "fixed"
+ *                 value: 5
+ *                 startDate: "2024-01-01T00:00:00.000Z"
+ *                 endDate: "2024-12-31T23:59:59.999Z"
+ *                 isActive: true
+ *     responses:
+ *       200:
+ *         description: Discount applied to all items successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Discount applied to 10 items successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     modifiedCount:
+ *                       type: number
+ *                       description: Number of items updated
+ *                       example: 10
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   delete:
+ *     summary: Remove discount from all vendor items
+ *     description: Remove discount from all items belonging to the vendor (Vendor only)
+ *     tags: ["Items - Vendor"]
+ *     parameters:
+ *       - name: Authorization
+ *         in: header
+ *         required: true
+ *         description: JWT access token
+ *         schema:
+ *           type: string
+ *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: vendorId
+ *         in: path
+ *         required: true
+ *         description: Vendor ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439010"
+ *       - name: menuCategoryId
+ *         in: path
+ *         required: true
+ *         description: Category ID
+ *         schema:
+ *           type: string
+ *           example: "507f1f77bcf86cd799439012"
+ *     responses:
+ *       200:
+ *         description: Discount removed from all items successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Discount removed from 10 items successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     modifiedCount:
+ *                       type: number
+ *                       description: Number of items updated
+ *                       example: 10
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
  * /api/v1/vendor/vendors/{vendorId}/categories/{menuCategoryId}/items/order:
  *   patch:
  *     summary: Update items order

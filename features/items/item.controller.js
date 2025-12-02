@@ -1,4 +1,4 @@
-const itemService = require("./item.service");
+const itemService = require('./item.service');
 
 // Create item
 const createItem = async (req, res) => {
@@ -8,8 +8,8 @@ const createItem = async (req, res) => {
     req.params.vendorId
   );
   res.status(201).json({
-    status: "success",
-    message: "Item created successfully",
+    status: 'success',
+    message: 'Item created successfully',
     data: { item },
   });
 };
@@ -18,8 +18,8 @@ const createItem = async (req, res) => {
 const uploadItemImage = async (req, res) => {
   const item = await itemService.uploadItemImage(req.item, req.file);
   res.status(200).json({
-    status: "success",
-    message: "Item image uploaded successfully",
+    status: 'success',
+    message: 'Item image uploaded successfully',
     data: { item },
   });
 };
@@ -34,8 +34,8 @@ const getItemImage = async (req, res) => {
 const updateItem = async (req, res) => {
   const item = await itemService.updateItem(req.item, req.body);
   res.status(200).json({
-    status: "success",
-    message: "Item updated successfully",
+    status: 'success',
+    message: 'Item updated successfully',
     data: { item },
   });
 };
@@ -44,8 +44,8 @@ const updateItem = async (req, res) => {
 const deleteItem = async (req, res) => {
   await itemService.deleteItem(req.item);
   res.status(200).json({
-    status: "success",
-    message: "Item deleted successfully",
+    status: 'success',
+    message: 'Item deleted successfully',
   });
 };
 
@@ -53,8 +53,8 @@ const deleteItem = async (req, res) => {
 const getItems = async (req, res) => {
   const items = await itemService.getItems(req.params);
   res.status(200).json({
-    status: "success",
-    message: "Items fetched successfully",
+    status: 'success',
+    message: 'Items fetched successfully',
     data: { items },
   });
 };
@@ -63,8 +63,8 @@ const getItems = async (req, res) => {
 const getItem = async (req, res) => {
   const item = await itemService.getItemById(req.item);
   res.status(200).json({
-    status: "success",
-    message: "Item fetched successfully",
+    status: 'success',
+    message: 'Item fetched successfully',
     data: { item },
   });
 };
@@ -76,8 +76,8 @@ const updateOrder = async (req, res) => {
     req.body.orderedArray
   );
   res.status(200).json({
-    status: "success",
-    message: "Item order updated successfully",
+    status: 'success',
+    message: 'Item order updated successfully',
     data: { items },
   });
 };
@@ -89,8 +89,8 @@ const updateAvailability = async (req, res) => {
     req.body.isAvailable
   );
   res.status(200).json({
-    status: "success",
-    message: "Item availability updated successfully",
+    status: 'success',
+    message: 'Item availability updated successfully',
     data: { item },
   });
 };
@@ -99,8 +99,8 @@ const updateAvailability = async (req, res) => {
 const updateActive = async (req, res) => {
   const item = await itemService.updateActive(req.item, req.body.isActive);
   res.status(200).json({
-    status: "success",
-    message: "Item active status updated successfully",
+    status: 'success',
+    message: 'Item active status updated successfully',
     data: { item },
   });
 };
@@ -110,8 +110,8 @@ const updateDiscount = async (req, res) => {
   const discountData = req.body;
   const item = await itemService.updateDiscount(req.item, discountData);
   res.status(200).json({
-    status: "success",
-    message: "Item discount updated successfully",
+    status: 'success',
+    message: 'Item discount updated successfully',
     data: { item },
   });
 };
@@ -120,9 +120,35 @@ const updateDiscount = async (req, res) => {
 const removeDiscount = async (req, res) => {
   const item = await itemService.removeDiscount(req.item);
   res.status(200).json({
-    status: "success",
-    message: "Item discount removed successfully",
+    status: 'success',
+    message: 'Item discount removed successfully',
     data: { item },
+  });
+};
+
+// Apply discount to all vendor items
+const applyDiscountToAll = async (req, res) => {
+  const discountData = req.body;
+  const modifiedCount = await itemService.applyDiscountToAllItems(
+    req.params.vendorId,
+    discountData
+  );
+  res.status(200).json({
+    status: 'success',
+    message: `Discount applied to ${modifiedCount} items successfully`,
+    data: { modifiedCount },
+  });
+};
+
+// Remove discount from all vendor items
+const removeDiscountFromAll = async (req, res) => {
+  const modifiedCount = await itemService.removeDiscountFromAllItems(
+    req.params.vendorId
+  );
+  res.status(200).json({
+    status: 'success',
+    message: `Discount removed from ${modifiedCount} items successfully`,
+    data: { modifiedCount },
   });
 };
 
@@ -130,8 +156,8 @@ const removeDiscount = async (req, res) => {
 const getAllItemsForAdmin = async (req, res) => {
   const items = await itemService.getAllItemsForAdmin(req.params);
   res.status(200).json({
-    status: "success",
-    message: "Items fetched successfully",
+    status: 'success',
+    message: 'Items fetched successfully',
     data: { items },
   });
 };
@@ -148,5 +174,7 @@ module.exports = {
   updateActive,
   updateDiscount,
   removeDiscount,
+  applyDiscountToAll,
+  removeDiscountFromAll,
   getAllItemsForAdmin,
 };
