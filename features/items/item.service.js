@@ -160,6 +160,38 @@ const removeDiscount = async (item) => {
   return sanitizeItem(item);
 };
 
+// Apply discount to all vendor items
+const applyDiscountToAllItems = async (vendorId, discountData) => {
+  const { type, value, startDate, endDate, isActive } = discountData;
+
+  const result = await Item.updateMany(
+    { vendor: vendorId },
+    {
+      $set: {
+        discount: {
+          type,
+          value,
+          startDate,
+          endDate,
+          isActive,
+        },
+      },
+    }
+  );
+
+  return result.modifiedCount;
+};
+
+// Remove discount from all vendor items
+const removeDiscountFromAllItems = async (vendorId) => {
+  const result = await Item.updateMany(
+    { vendor: vendorId },
+    { $set: { discount: null } }
+  );
+
+  return result.modifiedCount;
+};
+
 // Get all items for admin
 const getAllItemsForAdmin = async (params) => {
   const menuCategoryId = params.menuCategoryId;
@@ -184,5 +216,7 @@ module.exports = {
   updateActive,
   updateDiscount,
   removeDiscount,
+  applyDiscountToAllItems,
+  removeDiscountFromAllItems,
   getAllItemsForAdmin,
 };

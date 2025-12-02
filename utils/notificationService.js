@@ -3,8 +3,8 @@
  * Handles push notifications via Firebase Cloud Messaging (FCM)
  */
 
-const { getMessaging } = require("../config/firebase");
-const User = require("../features/users/user.model");
+const { getMessaging } = require('../config/firebase');
+const User = require('../features/users/user.model');
 
 /**
  * Send notification to a single user
@@ -18,11 +18,11 @@ const User = require("../features/users/user.model");
 const sendNotificationToUser = async (userId, notification, data = {}) => {
   try {
     // Get user's FCM token
-    const user = await User.findById(userId).select("fcmToken").lean();
+    const user = await User.findById(userId).select('fcmToken').lean();
 
     if (!user || !user.fcmToken) {
       console.log(`⚠️ No FCM token found for user: ${userId}`);
-      return { success: false, reason: "No FCM token" };
+      return { success: false, reason: 'No FCM token' };
     }
 
     const message = {
@@ -37,16 +37,16 @@ const sendNotificationToUser = async (userId, notification, data = {}) => {
         timestamp: new Date().toISOString(),
       },
       android: {
-        priority: "high",
+        priority: 'high',
         notification: {
-          sound: "default",
-          channelId: "3enab_orders",
+          sound: 'default',
+          channelId: '3enab_orders',
         },
       },
       apns: {
         payload: {
           aps: {
-            sound: "default",
+            sound: 'default',
             badge: 1,
           },
         },
@@ -63,8 +63,8 @@ const sendNotificationToUser = async (userId, notification, data = {}) => {
 
     // If token is invalid or expired, remove it from user
     if (
-      error.code === "messaging/invalid-registration-token" ||
-      error.code === "messaging/registration-token-not-registered"
+      error.code === 'messaging/invalid-registration-token' ||
+      error.code === 'messaging/registration-token-not-registered'
     ) {
       await User.findByIdAndUpdate(userId, { fcmToken: null });
       console.log(`🗑️ Removed invalid FCM token for user: ${userId}`);
@@ -88,11 +88,11 @@ const sendNotificationToUsers = async (userIds, notification, data = {}) => {
       _id: { $in: userIds },
       fcmToken: { $ne: null },
     })
-      .select("fcmToken")
+      .select('fcmToken')
       .lean();
 
     if (users.length === 0) {
-      console.log("⚠️ No users with FCM tokens found");
+      console.log('⚠️ No users with FCM tokens found');
       return { success: 0, failed: 0 };
     }
 
@@ -108,16 +108,16 @@ const sendNotificationToUsers = async (userIds, notification, data = {}) => {
         timestamp: new Date().toISOString(),
       },
       android: {
-        priority: "high",
+        priority: 'high',
         notification: {
-          sound: "default",
-          channelId: "3enab_orders",
+          sound: 'default',
+          channelId: '3enab_orders',
         },
       },
       apns: {
         payload: {
           aps: {
-            sound: "default",
+            sound: 'default',
             badge: 1,
           },
         },
@@ -139,8 +139,8 @@ const sendNotificationToUsers = async (userIds, notification, data = {}) => {
         if (!resp.success) {
           const error = resp.error;
           if (
-            error.code === "messaging/invalid-registration-token" ||
-            error.code === "messaging/registration-token-not-registered"
+            error.code === 'messaging/invalid-registration-token' ||
+            error.code === 'messaging/registration-token-not-registered'
           ) {
             invalidTokens.push(tokens[idx]);
           }
@@ -161,7 +161,7 @@ const sendNotificationToUsers = async (userIds, notification, data = {}) => {
       failed: response.failureCount,
     };
   } catch (error) {
-    console.error("❌ Failed to send notifications to users:", error);
+    console.error('❌ Failed to send notifications to users:', error);
     return { success: 0, failed: userIds.length, error: error.message };
   }
 };
@@ -183,7 +183,7 @@ const sendNotificationToUserType = async (
       type: userType,
       fcmToken: { $ne: null },
     })
-      .select("fcmToken")
+      .select('fcmToken')
       .lean();
 
     if (users.length === 0) {
@@ -214,12 +214,12 @@ const sendNotificationToUserType = async (
  */
 const sendNotificationToVendor = async (vendorId, notification, data = {}) => {
   try {
-    const Vendor = require("../features/vendors/vendor.model");
-    const vendor = await Vendor.findById(vendorId).select("owner").lean();
+    const Vendor = require('../features/vendors/vendor.model');
+    const vendor = await Vendor.findById(vendorId).select('owner').lean();
 
     if (!vendor) {
       console.log(`⚠️ Vendor not found: ${vendorId}`);
-      return { success: false, reason: "Vendor not found" };
+      return { success: false, reason: 'Vendor not found' };
     }
 
     return await sendNotificationToUser(vendor.owner.toString(), notification, {
@@ -242,7 +242,7 @@ const sendNotificationToVendor = async (vendorId, notification, data = {}) => {
  * @returns {Promise<Object>} - Summary of results
  */
 const sendNotificationToAllDelivery = async (notification, data = {}) => {
-  return await sendNotificationToUserType("delivery", notification, data);
+  return await sendNotificationToUserType('delivery', notification, data);
 };
 
 /**
@@ -255,8 +255,123 @@ const sendNotificationToAllDelivery = async (notification, data = {}) => {
 const sendNotificationToDriver = async (driverId, notification, data = {}) => {
   return await sendNotificationToUser(driverId, notification, {
     ...data,
-    role: "driver",
+    role: 'driver',
   });
+};
+
+/**
+ * Send broadcast notification to all users
+ * @param {Object} notification - Notification data
+ * @param {String} notification.title - Notification title
+ * @param {String} notification.body - Notification body
+ * @param {Object} data - Additional data to send with notification
+ * @param {String} targetType - Target user type: 'all', 'user', 'vendor', 'delivery', 'admin'
+ * @returns {Promise<Object>} - Summary of results
+ */
+const sendBroadcastNotification = async (
+  notification,
+  data = {},
+  targetType = 'all'
+) => {
+  try {
+    let query = { fcmToken: { $ne: null } };
+
+    // Filter by user type if specified
+    if (targetType !== 'all') {
+      query.type = targetType;
+    }
+
+    const users = await User.find(query).select('fcmToken').lean();
+
+    if (users.length === 0) {
+      console.log(
+        `⚠️ No users with FCM tokens found for target: ${targetType}`
+      );
+      return { success: 0, failed: 0, totalTargeted: 0 };
+    }
+
+    const tokens = users.map((user) => user.fcmToken);
+
+    // FCM allows max 500 tokens per multicast
+    const batchSize = 500;
+    let totalSuccess = 0;
+    let totalFailed = 0;
+    const invalidTokens = [];
+
+    for (let i = 0; i < tokens.length; i += batchSize) {
+      const batchTokens = tokens.slice(i, i + batchSize);
+
+      const message = {
+        notification: {
+          title: notification.title,
+          body: notification.body,
+        },
+        data: {
+          ...data,
+          type: 'broadcast',
+          targetType,
+          timestamp: new Date().toISOString(),
+        },
+        android: {
+          priority: 'high',
+          notification: {
+            sound: 'default',
+            channelId: '3enab_promotions',
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              sound: 'default',
+              badge: 1,
+            },
+          },
+        },
+        tokens: batchTokens,
+      };
+
+      const messaging = getMessaging();
+      const response = await messaging.sendEachForMulticast(message);
+
+      totalSuccess += response.successCount;
+      totalFailed += response.failureCount;
+
+      // Collect invalid tokens
+      response.responses.forEach((resp, idx) => {
+        if (!resp.success) {
+          const error = resp.error;
+          if (
+            error.code === 'messaging/invalid-registration-token' ||
+            error.code === 'messaging/registration-token-not-registered'
+          ) {
+            invalidTokens.push(batchTokens[idx]);
+          }
+        }
+      });
+    }
+
+    // Remove invalid tokens
+    if (invalidTokens.length > 0) {
+      await User.updateMany(
+        { fcmToken: { $in: invalidTokens } },
+        { fcmToken: null }
+      );
+      console.log(`🗑️ Removed ${invalidTokens.length} invalid FCM tokens`);
+    }
+
+    console.log(
+      `✅ Broadcast sent: ${totalSuccess} success, ${totalFailed} failed out of ${users.length} users`
+    );
+
+    return {
+      success: totalSuccess,
+      failed: totalFailed,
+      totalTargeted: users.length,
+    };
+  } catch (error) {
+    console.error('❌ Failed to send broadcast notification:', error);
+    return { success: 0, failed: 0, error: error.message };
+  }
 };
 
 module.exports = {
@@ -266,4 +381,5 @@ module.exports = {
   sendNotificationToVendor,
   sendNotificationToAllDelivery,
   sendNotificationToDriver,
+  sendBroadcastNotification,
 };
