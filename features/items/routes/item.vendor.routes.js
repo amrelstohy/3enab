@@ -37,17 +37,6 @@ router.put(
   itemController.updateItem
 );
 
-// Delete item
-router.delete(
-  '/:itemId',
-  isResourceExists(Item, 'itemId'),
-  checkOwnerShip(Vendor),
-  itemController.deleteItem
-);
-
-// Update order
-router.patch('/order', checkOwnerShip(Vendor), itemController.updateOrder);
-
 // Apply discount to all vendor items
 router.patch(
   '/discount',
@@ -61,6 +50,18 @@ router.delete(
   checkOwnerShip(Vendor),
   itemController.removeDiscountFromAll
 );
+
+// Delete item
+router.delete(
+  '/:itemId',
+  isResourceExists(Item, 'itemId'),
+  checkOwnerShip(Vendor),
+  itemController.deleteItem
+);
+
+// Update order
+router.patch('/order', checkOwnerShip(Vendor), itemController.updateOrder);
+
 
 // Update item availability
 router.patch(
