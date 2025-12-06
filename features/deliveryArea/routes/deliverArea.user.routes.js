@@ -1,10 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const deliveryAreaController = require("../deliveryArea.controller");
-const isResourceExists = require("../../../middlewares/isResourceExists");
-const DeliveryArea = require("../deliveryArea.model");
+const optionalAuthMiddleware = require("../../../middlewares/optionalAuth.middleware");
 
 // User routes for delivery areas - View
-router.get("", deliveryAreaController.getDeliveryAreas);
+router.get("", optionalAuthMiddleware, deliveryAreaController.getDeliveryAreas);
 
 module.exports = router;
