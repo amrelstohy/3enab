@@ -9,6 +9,7 @@ const allowedUrls = [
   '/api/v1/auth/verify-reset-password-otp',
   '/api/v1/auth/reset-password',
   '/api/v1/auth/logout',
+  '/api/v1/users/me',
 ];
 
 const authMiddleware = async (req, res, next) => {
