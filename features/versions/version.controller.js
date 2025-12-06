@@ -12,7 +12,8 @@ const createVersion = async (req, res) => {
 
 // Get the latest version
 const getLatestVersion = async (req, res) => {
-  const version = await versionService.getLatestVersion();
+  const { appType, platform } = req.query;
+  const version = await versionService.getLatestVersion(appType, platform);
   res.status(200).json({
     status: 'success',
     message: 'Latest version fetched successfully',

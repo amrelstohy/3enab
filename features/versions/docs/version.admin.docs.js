@@ -5,6 +5,8 @@
  *     Version:
  *       type: object
  *       required:
+ *         - appType
+ *         - platform
  *         - version
  *         - minVersion
  *       properties:
@@ -12,6 +14,16 @@
  *           type: string
  *           description: Unique identifier for the version
  *           example: "507f1f77bcf86cd799439011"
+ *         appType:
+ *           type: string
+ *           enum: [user, vendor, admin, delivery]
+ *           description: Type of application
+ *           example: "user"
+ *         platform:
+ *           type: string
+ *           enum: [android, ios]
+ *           description: Platform type
+ *           example: "android"
  *         version:
  *           type: string
  *           description: Current app version
@@ -35,8 +47,20 @@
  *     CreateVersionRequest:
  *       type: object
  *       required:
+ *         - appType
+ *         - platform
  *         - version
  *       properties:
+ *         appType:
+ *           type: string
+ *           enum: [user, vendor, admin, delivery]
+ *           description: Type of application
+ *           example: "user"
+ *         platform:
+ *           type: string
+ *           enum: [android, ios]
+ *           description: Platform type
+ *           example: "android"
  *         version:
  *           type: string
  *           description: App version string
@@ -86,7 +110,7 @@
  * /api/v1/admin/versions:
  *   post:
  *     summary: Create a new version
- *     description: Creates a new app version. The minVersion is automatically set to the last mandatory version.
+ *     description: Creates a new app version. The minVersion is automatically set to the last mandatory version for the same appType and platform.
  *     tags: ["Versions - Admin"]
  *     parameters:
  *       - name: Authorization
@@ -103,13 +127,17 @@
  *           schema:
  *             $ref: '#/components/schemas/CreateVersionRequest'
  *           examples:
- *             basic_version:
- *               summary: Basic version
+ *             user_android:
+ *               summary: User Android version
  *               value:
+ *                 appType: "user"
+ *                 platform: "android"
  *                 version: "1.2.0"
- *             mandatory_version:
- *               summary: Mandatory version
+ *             vendor_ios_mandatory:
+ *               summary: Vendor iOS mandatory version
  *               value:
+ *                 appType: "vendor"
+ *                 platform: "ios"
  *                 version: "2.0.0"
  *                 mandatory: true
  *     responses:
@@ -146,7 +174,7 @@
  * /api/v1/admin/versions/latest:
  *   get:
  *     summary: Get the latest version
- *     description: Retrieves the most recent app version
+ *     description: Retrieves the most recent app version for specific appType and platform
  *     tags: ["Versions - Admin"]
  *     parameters:
  *       - name: Authorization
@@ -156,6 +184,22 @@
  *         schema:
  *           type: string
  *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: appType
+ *         in: query
+ *         required: true
+ *         description: Type of application
+ *         schema:
+ *           type: string
+ *           enum: [user, vendor, admin, delivery]
+ *           example: "user"
+ *       - name: platform
+ *         in: query
+ *         required: true
+ *         description: Platform type
+ *         schema:
+ *           type: string
+ *           enum: [android, ios]
+ *           example: "android"
  *     responses:
  *       200:
  *         description: Latest version fetched successfully
@@ -196,7 +240,7 @@
  * /api/v1/admin/versions:
  *   get:
  *     summary: Get all versions
- *     description: Retrieves all app versions with pagination
+ *     description: Retrieves all app versions with pagination and optional filtering
  *     tags: ["Versions - Admin"]
  *     parameters:
  *       - name: Authorization
@@ -206,6 +250,22 @@
  *         schema:
  *           type: string
  *           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       - name: appType
+ *         in: query
+ *         required: false
+ *         description: Filter by app type
+ *         schema:
+ *           type: string
+ *           enum: [user, vendor, admin, delivery]
+ *           example: "user"
+ *       - name: platform
+ *         in: query
+ *         required: false
+ *         description: Filter by platform
+ *         schema:
+ *           type: string
+ *           enum: [android, ios]
+ *           example: "android"
  *       - name: orderBy
  *         in: query
  *         required: false
@@ -284,7 +344,7 @@
  * /api/v1/admin/versions/{versionId}:
  *   put:
  *     summary: Update a version
- *     description: Update an existing version (admin only). The minVersion is automatically recalculated.
+ *     description: Update an existing version (admin only). The minVersion is automatically recalculated. Note - appType and platform cannot be changed.
  *     tags: ["Versions - Admin"]
  *     parameters:
  *       - name: Authorization

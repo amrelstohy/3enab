@@ -2,6 +2,16 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const versionSchema = new Schema({
+  appType: {
+    type: String,
+    enum: ["user", "vendor", "admin", "delivery"],
+    required: true,
+  },
+  platform: {
+    type: String,
+    enum: ["android", "ios"],
+    required: true,
+  },
   version: {
     type: String,
     required: true,
