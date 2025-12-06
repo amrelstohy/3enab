@@ -33,9 +33,9 @@ const authMiddleware = async (req, res, next) => {
     throw new UnauthorizedError("This user is not allowed to access this app");
   }
 
-  if ( user.isPhoneVerified === false) {
-    throw new UnauthorizedError("Phone number is not verified");
-  }
+  // if ( user.isPhoneVerified === false) {
+  //   throw new UnauthorizedError("Phone number is not verified");
+  // }
 
   req.user = user;
 
