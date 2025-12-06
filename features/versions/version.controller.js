@@ -50,9 +50,22 @@ const getAllVersions = async (req, res) => {
   });
 };
 
+// Get the latest version for app (uses req.appType)
+const getLatestVersionForApp = async (req, res) => {
+  const appType = req.appType;
+  const { platform } = req.query;
+  const version = await versionService.getLatestVersion(appType, platform);
+  res.status(200).json({
+    status: 'success',
+    message: 'Latest version fetched successfully',
+    data: { version },
+  });
+};
+
 module.exports = {
   createVersion,
   getLatestVersion,
+  getLatestVersionForApp,
   updateVersion,
   deleteVersion,
   getAllVersions,
