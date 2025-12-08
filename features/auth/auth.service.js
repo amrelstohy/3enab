@@ -42,10 +42,10 @@ const register = async (
     }
   }
 
-  const phoneVerificationOTP = "1234"; //OTPGenerator(4);
+  const phoneVerificationOTP = OTPGenerator(4);
   const fullPhoneNumber = `+20${phone}`;
 
-  // await sendOTP(fullPhoneNumber, phoneVerificationOTP);
+  await sendOTP(fullPhoneNumber, phoneVerificationOTP);
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -157,7 +157,7 @@ const sendPhoneOtp = async (user) => {
     throw new NotFoundError("User not found");
   }
 
-  const phoneVerificationOTP = "1234"; //OTPGenerator(4);
+  const phoneVerificationOTP = OTPGenerator(4);
   const phoneVerificationOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
   await User.findOneAndUpdate(
@@ -167,11 +167,9 @@ const sendPhoneOtp = async (user) => {
       phoneVerificationOTPExpires,
     }
   );
+  const fullPhoneNumber = `+20${user.phone}`;
 
-  // await sendSMS({
-  //   to: phoneNumber,
-  //   message: `Your verification code is: ${otp}. Valid for 10 minutes.`,
-  // });
+  await sendOTP(fullPhoneNumber, phoneVerificationOTP);
 };
 
 // Verify phone OTP
@@ -198,18 +196,15 @@ const sendResetPasswordOtp = async (phone) => {
     throw new NotFoundError("User not found");
   }
 
-  const otp = "1234"; //OTPGenerator(4);
+  const otp = OTPGenerator(4);
   const resetPasswordOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
   user.resetPasswordOTP = otp;
   user.resetPasswordOTPExpires = resetPasswordOTPExpires;
   await user.save();
 
-  // await sendEmail({
-  //   to: email,
-  //   subject: "Password Reset Request",
-  //   text: `Your password reset code is: ${otp}. Valid for 10 minutes.`,
-  // });
+  const fullPhoneNumber = `+20${phone}`;
+  await sendOTP(fullPhoneNumber, otp);
 };
 
 // Verify reset password OTP
