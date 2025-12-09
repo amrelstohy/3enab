@@ -13,6 +13,7 @@ const couponAdminRoutes = require('./coupons/routes/coupon.admin.routes');
 const deliveryAreaAdminRoutes = require('./deliveryArea/routes/deliverArea.admin.routes');
 const notificationAdminRoutes = require('./notifications/routes/notification.admin.routes');
 const versionAdminRoutes = require('./versions/routes/version.admin.routes');
+const orderAdminRoutes = require('./orders/routes/order.admin.routes');
 
 // Admin endpoints - full CRUD access
 router.use('/auth', authRoutes);
@@ -25,5 +26,6 @@ router.use('/coupons', isAuth, couponAdminRoutes);
 router.use('/deliveryAreas', isAuth, deliveryAreaAdminRoutes);
 router.use('/notifications', isAuth, notificationAdminRoutes);
 router.use('/versions', isAuth, versionAdminRoutes);
+router.use('/orders', isAuth, orderAdminRoutes);
 
 module.exports = router;

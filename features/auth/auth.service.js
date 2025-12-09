@@ -42,10 +42,13 @@ const register = async (
     }
   }
 
-  const phoneVerificationOTP = "1234"; //OTPGenerator(4);
+  const phoneVerificationOTP = OTPGenerator(4);
   const fullPhoneNumber = `+20${phone}`;
 
-  // await sendOTP(fullPhoneNumber, phoneVerificationOTP);
+  const result = await sendOTP(fullPhoneNumber, phoneVerificationOTP);
+  if (!result.success) {
+    throw new BadRequestError(result.error);
+  }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -157,7 +160,7 @@ const sendPhoneOtp = async (user) => {
     throw new NotFoundError("User not found");
   }
 
-  const phoneVerificationOTP = "1234"; //OTPGenerator(4);
+  const phoneVerificationOTP = OTPGenerator(4);
   const phoneVerificationOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
   await User.findOneAndUpdate(
@@ -169,7 +172,10 @@ const sendPhoneOtp = async (user) => {
   );
   const fullPhoneNumber = `+20${user.phone}`;
 
-  // await sendOTP(fullPhoneNumber, phoneVerificationOTP);
+  const result = await sendOTP(fullPhoneNumber, phoneVerificationOTP);
+  if (!result.success) {
+    throw new BadRequestError(result.error);
+  }
 };
 
 // Verify phone OTP
@@ -196,7 +202,7 @@ const sendResetPasswordOtp = async (phone) => {
     throw new NotFoundError("User not found");
   }
 
-  const otp = "1234"; //OTPGenerator(4);
+  const otp = OTPGenerator(4);
   const resetPasswordOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
   user.resetPasswordOTP = otp;
@@ -204,7 +210,10 @@ const sendResetPasswordOtp = async (phone) => {
   await user.save();
 
   const fullPhoneNumber = `+20${phone}`;
-  // await sendOTP(fullPhoneNumber, otp);
+  const result = await sendOTP(fullPhoneNumber, otp);
+  if (!result.success) {
+    throw new BadRequestError(result.error);
+  }
 };
 
 // Verify reset password OTP

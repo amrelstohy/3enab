@@ -827,6 +827,104 @@ const cancelOrderByVendor = async (
   return sanitizedOrder;
 };
 
+// =====================
+// ADMIN FUNCTIONS
+// =====================
+
+// Get all orders (Admin) - can filter by multiple statuses
+const getAdminOrders = async (statuses = []) => {
+  const filter = {};
+
+  if (statuses.length > 0) {
+    filter.status = { $in: statuses };
+  }
+
+  const orders = await Order.find(filter)
+    .populate({
+      path: 'user',
+      select: 'name phone email',
+    })
+    .populate({
+      path: 'vendor',
+      select: 'name logoPath',
+    })
+    .populate({
+      path: 'address',
+    })
+    .populate({
+      path: 'assignedDriver',
+      select: 'name phone',
+    })
+    .populate({
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
+    })
+    .populate({
+      path: 'appliedCoupon',
+      select: 'code discount discountType',
+    })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  return sanitizeOrders(orders);
+};
+
+// Get single order by ID (Admin) - no ownership check
+const getAdminOrderById = async (orderId) => {
+  const order = await Order.findById(orderId)
+    .populate({
+      path: 'user',
+      select: 'name phone email',
+    })
+    .populate({
+      path: 'vendor',
+      select: 'name logoPath',
+    })
+    .populate({
+      path: 'address',
+    })
+    .populate({
+      path: 'assignedDriver',
+      select: 'name phone',
+    })
+    .populate({
+      path: 'items.item',
+      select: 'name imagePath category',
+      populate: {
+        path: 'category',
+        select: 'name',
+      },
+    })
+    .populate({
+      path: 'appliedCoupon',
+      select: 'code discount discountType',
+    })
+    .lean();
+
+  if (!order) {
+    throw new NotFoundError('Order not found');
+  }
+
+  return sanitizeOrder(order);
+};
+
+// Hard delete order from database (Admin)
+const hardDeleteOrder = async (orderId) => {
+  const order = await Order.findById(orderId);
+
+  if (!order) {
+    throw new NotFoundError('Order not found');
+  }
+
+  await Order.findByIdAndDelete(orderId);
+
+  return { message: 'Order deleted permanently' };
+};
+
 module.exports = {
   previewOrder,
   createOrder,
@@ -842,4 +940,8 @@ module.exports = {
   assignDeliveryDriver,
   updateDeliveryOrderStatus,
   getDriverOrders,
+  // Admin functions
+  getAdminOrders,
+  getAdminOrderById,
+  hardDeleteOrder,
 };

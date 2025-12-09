@@ -1,40 +1,22 @@
-const { BadRequestError } = require("./errors");
+const twilio = require("twilio");
+
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = twilio(accountSid, authToken);
 
 module.exports = async (phoneNumber, otp) => {
-  const url = "https://api.akedly.io/api/v1/transactions";
+  try {
+    const message = await client.messages.create({
+      from: process.env.TWILIO_WHATSAPP_FROM,
+      contentSid: process.env.TWILIO_CONTENT_SID,
+      contentVariables: JSON.stringify({ "1": otp }),
+      to: `whatsapp:${phoneNumber}`,
+    });
 
-  const bodyData = {
-    APIKey: process.env.AKEDLY_API_KEY,
-    pipelineID: process.env.AKEDLY_PIPELINE_ID,
-    verificationAddress: {
-      phoneNumber: phoneNumber,
-    },
-    otp: otp,
-  };
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(bodyData),
-  });
-
-  const data = await response.json();
-  const transactionID = data.data?.transactionID;
-
-  if (response.status == 200 && transactionID) {
-    const activateTransaction = await fetch(
-      url + "/activate/" + transactionID,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}),
-      }
-    );
-    const activateTransactionData = await activateTransaction.json();
-    console.log(activateTransactionData);
+    console.log("Sent:", message.sid);
+    return { success: true, sid: message.sid };
+  } catch (err) {
+    console.error("Twilio Error:", err.message);
+    return { success: false, error: err.message };
   }
 };
