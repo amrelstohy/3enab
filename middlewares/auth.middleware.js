@@ -10,6 +10,14 @@ const allowedUrls = [
   '/api/v1/auth/reset-password',
   '/api/v1/auth/logout',
   '/api/v1/users/me',
+  '/api/v1/vendor/users/me',
+  '/api/v1/delivery/users/me',
+  '/api/v1/admin/users/me',
+  '/api/v1/delivery/users/me',
+  '/api/v1/fcm-token',
+  '/api/v1/vendor/fcm-token',
+  '/api/v1/delivery/fcm-token',
+  '/api/v1/admin/fcm-token',
 ];
 
 const authMiddleware = async (req, res, next) => {

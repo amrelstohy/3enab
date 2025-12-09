@@ -19,16 +19,16 @@ router.get("/verify-email", authMiddleware, authController.verifyEmail);
 router.post(
   "/send-phone-otp",
   authMiddleware,
-  // limiter(30, 3),
-  // limiter(3, 1),
+  limiter(30, 3),
+  limiter(3, 1),
   authController.sendPhoneOtp
 );
 router.post("/verify-phone-otp", authMiddleware, authController.verifyPhoneOtp);
 
 router.post(
   "/send-reset-password-otp",
-  // limiter(30, 3),
-  // limiter(3, 1),
+  limiter(30, 3),
+  limiter(3, 1),
   authController.sendResetPasswordOtp
 );
 router.post(
