@@ -216,6 +216,49 @@ const getMyDeliveryOrders = async (req, res) => {
   });
 };
 
+// =====================
+// ADMIN CONTROLLERS
+// =====================
+
+// GET / (admin) - Get all orders with optional status filter
+const getAdminOrders = async (req, res) => {
+  // Get status from query - can be single value or array (e.g., ?status=pending&status=preparing)
+  let statuses = [];
+  if (req.query.status) {
+    if (Array.isArray(req.query.status)) {
+      statuses = req.query.status;
+    } else {
+      statuses = [req.query.status];
+    }
+  }
+  const orders = await orderService.getAdminOrders(statuses);
+  res.status(200).json({
+    status: 'success',
+    message: 'Orders fetched successfully',
+    data: { orders },
+  });
+};
+
+// GET /:id (admin) - Get single order by ID
+const getAdminOrderById = async (req, res) => {
+  const order = await orderService.getAdminOrderById(req.params.id);
+  res.status(200).json({
+    status: 'success',
+    message: 'Order fetched successfully',
+    data: { order },
+  });
+};
+
+// DELETE /:id (admin) - Hard delete order from database
+const hardDeleteOrder = async (req, res) => {
+  const result = await orderService.hardDeleteOrder(req.params.id);
+  res.status(200).json({
+    status: 'success',
+    message: result.message,
+    data: null,
+  });
+};
+
 module.exports = {
   previewOrder,
   createOrder,
@@ -231,4 +274,8 @@ module.exports = {
   assignDriver,
   updateDeliveryStatus,
   getMyDeliveryOrders,
+  // Admin functions
+  getAdminOrders,
+  getAdminOrderById,
+  hardDeleteOrder,
 };
