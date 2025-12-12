@@ -68,9 +68,15 @@ const userSchema = new Schema(
       type: String,
       enum: ["online", "offline", "busy"],
     },
-    fcmToken: {
-      type: String,
-      default: null,
+    fcmTokens: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function (v) {
+          return v.length <= 10;
+        },
+        message: 'Maximum 10 FCM tokens allowed per user',
+      },
     },
   },
   { timestamps: true }

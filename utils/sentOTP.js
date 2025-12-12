@@ -94,7 +94,7 @@ module.exports = async (phoneNumber, otp) => {
     const payload = {
       recipient: phoneNumber,
       sender_id: process.env.WHYSMS_SENDER,
-      type: "plain",
+      type: "otp",
       message: `رمز التحقق الخاص بتطبيق الرجل العناب هو: ${otp} `,
     };
 
